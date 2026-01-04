@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+# Check if foreman is installed
+unless system("gem list foreman -i --silent")
+  puts "Installing foreman..."
+  system("gem install foreman")
+end
+
+# Start both Rails and Vite dev servers
+exec("foreman start -f Procfile.dev")
