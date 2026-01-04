@@ -1,26 +1,18 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import RubyPlugin from 'vite-plugin-ruby'
-import { fileURLToPath, URL } from 'node:url'
+import tailwindcss from '@tailwindcss/vite'
+import path from 'node:path'
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [
     vue(),
-    RubyPlugin()
+    tailwindcss(),
+    RubyPlugin(),
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./app/frontend', import.meta.url))
-    }
+      '@': path.resolve(__dirname, './app/frontend'),
+    },
   },
-  server: {
-    port: 5173,
-    cors: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
-      }
-    }
-  }
-}))
+})
