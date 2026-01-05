@@ -18,8 +18,6 @@
           </transition>
         </router-view>
       </main>
-
-      <AppFooter v-if="!isAuthPage" />
     </div>
 
     <!-- Toast notifications -->
@@ -32,7 +30,6 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import AppHeader from './components/layout/AppHeader.vue'
-import AppFooter from './components/layout/AppFooter.vue'
 import { Toaster } from '@/components/ui/sonner'
 
 const route = useRoute()
