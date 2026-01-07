@@ -48,7 +48,7 @@
                 <SelectValue placeholder="All Genres" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Genres</SelectItem>
+                <SelectItem value="all">All Genres</SelectItem>
                 <SelectItem value="Breton Folk">Breton Folk</SelectItem>
                 <SelectItem value="Traditional">Traditional</SelectItem>
                 <SelectItem value="Breton Traditional">Breton Traditional</SelectItem>
@@ -59,7 +59,7 @@
           </div>
 
           <!-- Active Filters -->
-          <div v-if="searchQuery || selectedGenre" class="flex flex-wrap gap-2 mt-5 pt-5 border-t border-border/50">
+          <div v-if="searchQuery || (selectedGenre && selectedGenre !== 'all')" class="flex flex-wrap gap-2 mt-5 pt-5 border-t border-border/50">
             <div class="text-sm text-muted-foreground font-medium mr-2 flex items-center gap-2">
               <SlidersHorizontal class="w-4 h-4" />
               Active filters:
@@ -76,7 +76,7 @@
               </button>
             </Badge>
             <Badge
-              v-if="selectedGenre"
+              v-if="selectedGenre && selectedGenre !== 'all'"
               variant="secondary"
               class="gap-2 px-3 py-1.5 bg-purple-500/10 text-purple-400 border-purple-500/20 hover:bg-purple-500/20 transition-colors"
             >
@@ -135,9 +135,9 @@
           </div>
           <h3 class="text-xl font-bold mb-2">No artists found</h3>
           <p class="text-muted-foreground text-center max-w-md mb-6">
-            {{ searchQuery || selectedGenre ? 'Try adjusting your search or filters' : 'No artists available yet' }}
+            {{ searchQuery || (selectedGenre && selectedGenre !== 'all') ? 'Try adjusting your search or filters' : 'No artists available yet' }}
           </p>
-          <Button v-if="searchQuery || selectedGenre" variant="outline" @click="clearFilters" class="font-medium">
+          <Button v-if="searchQuery || (selectedGenre && selectedGenre !== 'all')" variant="outline" @click="clearFilters" class="font-medium">
             <X class="w-4 h-4 mr-2" />
             Clear filters
           </Button>
@@ -189,7 +189,7 @@ import {
 const artistsStore = useArtistsStore()
 
 const searchQuery = ref('')
-const selectedGenre = ref('')
+const selectedGenre = ref('all')
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 function debouncedSearch() {
@@ -209,20 +209,20 @@ function clearSearch() {
 }
 
 function clearGenre() {
-  selectedGenre.value = ''
+  selectedGenre.value = 'all'
   fetchArtists()
 }
 
 function clearFilters() {
   searchQuery.value = ''
-  selectedGenre.value = ''
+  selectedGenre.value = 'all'
   fetchArtists()
 }
 
 async function fetchArtists() {
   const filters: Record<string, string> = {}
   if (searchQuery.value) filters.search = searchQuery.value
-  if (selectedGenre.value) filters.genre = selectedGenre.value
+  if (selectedGenre.value && selectedGenre.value !== 'all') filters.genre = selectedGenre.value
   await artistsStore.fetchArtists(filters)
 }
 

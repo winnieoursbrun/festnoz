@@ -28,6 +28,13 @@ npm run dev               # Frontend on port 5173
 # Build frontend for production
 npm run build
 
+# Run tests
+npm test                  # Frontend tests (watch mode)
+npm run test:run          # Frontend tests (run once)
+npm run test:ui           # Frontend tests with UI
+npm run test:coverage     # Frontend tests with coverage
+rails test                # Backend tests (if configured)
+
 # Run linting
 bundle exec rubocop       # Ruby
 npm run lint              # JS (if configured)
@@ -137,10 +144,54 @@ Auth routes under `/api/auth/`:
 ## Common Patterns
 
 ### Authentication Flow
-1. Frontend stores JWT in localStorage
-2. Axios interceptor adds `Authorization: Bearer <token>` header
-3. Rails uses devise-jwt to validate tokens
-4. JwtDenylist model tracks revoked tokens
+
+The app uses Devise HTML views for authentication (not custom Vue forms) with JWT token-based API authentication.
+
+**Login/Signup Flow:**
+1. User visits `/api/auth/login` or `/api/auth/signup` (Devise HTML views)
+2. User submits credentials via HTML form
+3. Backend authenticates user and generates JWT token with required claims:
+   - `sub` - User ID
+   - `scp` - Scope ('user')
+   - `aud` - Audience (null)
+   - `iat` - Issued at timestamp
+   - `exp` - Expiration timestamp (1 week)
+   - `jti` - JWT ID (UUID for revocation via denylist)
+4. Backend redirects to frontend: `{URL}/auth/success?token={JWT}`
+5. Frontend `AuthSuccess.vue` component:
+   - Extracts token from query parameter
+   - Saves to localStorage as 'authToken'
+   - Fetches current user via `/api/v1/auth/me`
+   - Redirects to `/dashboard`
+
+**Spotify OAuth Flow:**
+1. User clicks "Continue with Spotify" → `/api/auth/auth/spotify`
+2. Redirected to Spotify authorization page
+3. Spotify redirects back to `/api/auth/auth/spotify/callback`
+4. Backend creates/updates user from OAuth data
+5. Generates JWT token and redirects to `/auth/success?token={JWT}`
+6. Same frontend flow as login/signup
+
+**API Authentication:**
+- Frontend Axios interceptor adds `Authorization: Bearer {token}` header
+- Backend Devise JWT strategy validates token via Warden
+- Protected endpoints use `before_action :authenticate_user!`
+- Token validated against JwtDenylist for revocation
+
+**JWT Token Format:**
+All manually generated tokens MUST include these claims to work with Devise JWT:
+```ruby
+{
+  sub: user.id,                    # Subject (user ID)
+  scp: 'user',                     # Scope
+  aud: nil,                        # Audience
+  iat: Time.now.to_i,              # Issued at
+  exp: (Time.now + 1.week).to_i,   # Expiration
+  jti: SecureRandom.uuid           # JWT ID (required for denylist)
+}
+```
+Algorithm: HS256
+Secret: `Rails.application.credentials.devise_jwt_secret_key || Rails.application.credentials.secret_key_base`
 
 ### Following Artists
 - UserArtist join model with `user_id` + `artist_id`
@@ -197,4 +248,54 @@ Concert.near([lat, lng], radius_km, units: :km)
 - CSS is imported in JS entry point, not separate Vite entrypoint
 - Admin routes require `current_user.admin?` check
 - Frontend runs on port 5173, backend on 3000 during development
-- CORS is configured to allow localhost:5173 in development
+- CORS is configured to allow 127.0.0.1:3000 in development
+
+## Configuration Management
+
+**IMPORTANT**: Use Rails encrypted credentials instead of environment variables for sensitive data.
+
+### Managing Credentials
+
+```bash
+# Edit credentials (opens in $EDITOR)
+EDITOR="code --wait" rails credentials:edit
+
+# Or for specific environment
+EDITOR="code --wait" rails credentials:edit --environment production
+```
+
+### Required Credentials
+
+The following credentials should be stored in Rails encrypted credentials:
+
+- `devise_jwt_secret_key` - JWT secret for authentication (optional, falls back to secret_key_base)
+- `spotify_client_id` - Spotify OAuth client ID (required for OAuth)
+- `spotify_client_secret` - Spotify OAuth client secret (required for OAuth)
+- `nominatim_email` - Email for Nominatim geocoding service (defaults to admin@example.com)
+
+### Environment Variables
+
+The following environment variables can be set (optional):
+
+- `URL` - Base URL for the application (defaults to http://127.0.0.1:3000 in development)
+  - In production, frontend and backend share the same URL (e.g., https://festnoz.app)
+  - Used for OAuth redirects and other URL construction
+
+### Accessing Credentials in Code
+
+```ruby
+# Access credentials in Ruby code
+Rails.application.credentials.spotify_client_id
+Rails.application.credentials.spotify_client_secret
+
+# With environment-specific credentials
+Rails.application.credentials.dig(:spotify, :client_id)
+```
+
+### Why Credentials Over ENV Variables?
+
+- Encrypted at rest in version control
+- Environment-specific configuration supported
+- Better for team collaboration
+- No risk of leaking .env files
+- Rails best practice

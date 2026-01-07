@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "FestNoz - Sign In" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag 'application' %>
+
+    <style>
+      /* Import Tailwind via the Vite bundle */
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen bg-[rgb(10,10,10)] text-white">
+    <!-- Background effects -->
+    <div class="fixed inset-0 pointer-events-none">
+      <div class="absolute inset-0" style="background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 50%);"></div>
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] opacity-30" style="background: radial-gradient(circle, rgba(255,100,100,0.15) 0%, transparent 70%); filter: blur(60px);"></div>
+      <div class="absolute bottom-0 right-0 w-[600px] h-[400px] opacity-20" style="background: radial-gradient(circle, rgba(255,100,100,0.15) 0%, transparent 70%); filter: blur(60px);"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10">
+      <%= yield %>
+    </div>
+
+    <% if flash[:notice] || flash[:alert] %>
+      <script>
+        <% if flash[:notice] %>
+          console.log('Notice: <%= flash[:notice] %>');
+        <% end %>
+        <% if flash[:alert] %>
+          console.log('Alert: <%= flash[:alert] %>');
+        <% end %>
+      </script>
+    <% end %>
+  </body>
+</html>

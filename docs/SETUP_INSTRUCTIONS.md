@@ -125,5 +125,5 @@ bin/dev
 
 ## Development URLs
 
-- **Frontend**: http://localhost:5173 (Vite dev server)
-- **Backend API**: http://localhost:3000/api/v1
+- **Frontend**: http://127.0.0.1:3000 (Vite dev server)
+- **Backend API**: http://127.0.0.1:3000/api/v1

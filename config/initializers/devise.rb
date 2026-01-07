@@ -7,10 +7,10 @@ Devise.setup do |config|
   config.secret_key = Rails.application.credentials.secret_key_base
 
   # ==> Mailer Configuration
-  config.mailer_sender = 'noreply@festnoz.com'
+  config.mailer_sender = "noreply@festnoz.com"
 
   # ==> ORM configuration
-  require 'devise/orm/active_record'
+  require "devise/orm/active_record"
 
   # ==> Configuration for :database_authenticatable
   config.stretches = Rails.env.test? ? 1 : 12
@@ -37,17 +37,17 @@ Devise.setup do |config|
   config.jwt do |jwt|
     jwt.secret = Rails.application.credentials.devise_jwt_secret_key || Rails.application.credentials.secret_key_base
     jwt.dispatch_requests = [
-      ['POST', %r{^/api/auth/login$}],
-      ['POST', %r{^/api/auth/signup$}]
+      [ "POST", %r{^/api/auth/login$} ],
+      [ "POST", %r{^/api/auth/signup$} ]
     ]
     jwt.revocation_requests = [
-      ['DELETE', %r{^/api/auth/logout$}]
+      [ "DELETE", %r{^/api/auth/logout$} ]
     ]
     jwt.expiration_time = 1.week.to_i
   end
 
   # ==> Scopes configuration
-  config.scoped_views = false
+  config.scoped_views = true
 
   # ==> Navigation configuration
   config.sign_out_via = :delete
@@ -55,7 +55,14 @@ Devise.setup do |config|
   # ==> Warden configuration
   config.warden do |manager|
     manager.failure_app = proc { |_env|
-      ['401', { 'Content-Type' => 'application/json' }, [{ error: 'Unauthorized' }.to_json]]
+      [ "401", { "Content-Type" => "application/json" }, [ { error: "Unauthorized" }.to_json ] ]
     }
   end
+
+  # ==> OmniAuth configuration
+  # Configure OmniAuth providers
+  config.omniauth :spotify,
+                  Rails.application.credentials.spotify_client_id,
+                  Rails.application.credentials.spotify_client_secret,
+                  scope: "user-read-email user-read-private user-library-read user-follow-read playlist-read-private user-top-read user-read-recently-played"
 end

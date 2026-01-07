@@ -12,11 +12,7 @@
       <AppHeader v-if="!isAuthPage" />
 
       <main class="min-h-screen">
-        <router-view v-slot="{ Component }">
-          <transition name="page" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
+        <router-view />
       </main>
     </div>
 
@@ -47,21 +43,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style scoped>
-/* Page transitions */
-.page-enter-active,
-.page-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-</style>

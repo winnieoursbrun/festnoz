@@ -9,7 +9,7 @@
    - Revocation on logout endpoint
 
 2. **`config/initializers/cors.rb`** - CORS configuration for frontend
-   - Allows localhost:5173 (Vite dev server)
+   - Allows 127.0.0.1:3000 (Vite dev server)
    - Exposes Authorization header
    - Allows credentials
 
@@ -204,7 +204,7 @@ rails db:seed
 rails server
 
 # Test endpoints with curl
-curl http://localhost:3000/api/v1/artists
+curl http://127.0.0.1:3000/api/v1/artists
 ```
 
 ### Step 4: Frontend Setup

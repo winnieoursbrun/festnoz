@@ -87,10 +87,10 @@
             size="lg"
             class="h-14 px-8 text-base font-bold shadow-lg hover:shadow-primary/25 hover:shadow-xl transition-all group"
           >
-            <router-link to="/signup" class="flex items-center gap-2">
+            <a href="/api/auth/signup" class="flex items-center gap-2">
               Get Started Free
               <ArrowRight class="w-5 h-5 transition-transform group-hover:translate-x-1" />
-            </router-link>
+            </a>
           </Button>
           <Button
             as-child
@@ -98,10 +98,10 @@
             size="lg"
             class="h-14 px-8 text-base font-semibold border-2 hover:bg-accent transition-all"
           >
-            <router-link to="/login" class="flex items-center gap-2">
+            <a href="/api/auth/login" class="flex items-center gap-2">
               <LogIn class="w-5 h-5" />
               Sign In
-            </router-link>
+            </a>
           </Button>
         </div>
 

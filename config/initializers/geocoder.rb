@@ -6,7 +6,7 @@ Geocoder.configure(
 
   # Nominatim (OpenStreetMap) specific settings
   nominatim: {
-    email: ENV.fetch("NOMINATIM_EMAIL", "admin@example.com"), # Required by Nominatim TOS
+    email: Rails.application.credentials.nominatim_email || "admin@example.com", # Required by Nominatim TOS
     timeout: 5 # seconds
   },
 

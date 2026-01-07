@@ -61,8 +61,8 @@ bin/dev
 - User: `user@example.com` / `password123`
 
 ## Development URLs
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000/api/v1
+- Frontend: http://127.0.0.1:3000
+- Backend API: http://127.0.0.1:3000/api/v1
 
 ## API Endpoints
 
