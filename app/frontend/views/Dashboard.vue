@@ -94,10 +94,23 @@
                 <span class="font-medium">Discover Artists</span>
               </router-link>
             </Button>
+            <Button
+              v-if="authStore.user?.provider === 'spotify'"
+              as-child
+              variant="outline"
+              class="w-full justify-start h-10 bg-background/50 hover:bg-accent group"
+            >
+              <router-link to="/suggested-artists" class="flex items-center gap-3">
+                <div class="p-1.5 rounded-md bg-purple-500/10">
+                  <Sparkles class="w-4 h-4 text-purple-500" />
+                </div>
+                <span class="font-medium">Suggested Artists</span>
+              </router-link>
+            </Button>
             <Button as-child variant="outline" class="w-full justify-start h-10 bg-background/50 hover:bg-accent group">
               <router-link to="/map" class="flex items-center gap-3">
-                <div class="p-1.5 rounded-md bg-purple-500/10">
-                  <MapIcon class="w-4 h-4 text-purple-500" />
+                <div class="p-1.5 rounded-md bg-pink-500/10">
+                  <MapIcon class="w-4 h-4 text-pink-500" />
                 </div>
                 <span class="font-medium">Explore Map</span>
               </router-link>
@@ -178,6 +191,86 @@
           </Button>
         </div>
       </div>
+
+      <!-- Suggested Artists Section -->
+      <div
+        v-if="authStore.user?.provider === 'spotify'"
+        class="mt-12"
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0, transition: { delay: 500 } }"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <Sparkles class="w-5 h-5 text-purple-400" />
+              <h2 class="text-2xl font-bold">Suggested for You</h2>
+            </div>
+            <p class="text-sm text-muted-foreground">Based on your Spotify listening history</p>
+          </div>
+          <Button as-child variant="ghost" class="group">
+            <router-link to="/suggested-artists" class="flex items-center gap-2">
+              <span class="font-medium">View all</span>
+              <ArrowRight class="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </router-link>
+          </Button>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="artistsStore.loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <Card v-for="i in 4" :key="i" class="bg-card/50 border-border/50">
+            <div class="h-32 skeleton-shimmer rounded-t-lg" />
+            <CardContent class="pt-4 space-y-3">
+              <Skeleton class="h-5 w-3/4" />
+              <Skeleton class="h-4 w-1/2" />
+            </CardContent>
+          </Card>
+        </div>
+
+        <!-- Empty State / Call to Action -->
+        <Card
+          v-else-if="artistsStore.suggestedArtists.length === 0"
+          class="border-dashed border-border/50 bg-gradient-to-r from-purple-500/5 to-pink-500/5"
+        >
+          <CardContent class="flex flex-col items-center justify-center py-12">
+            <div class="p-4 rounded-2xl bg-purple-500/10 mb-6">
+              <Sparkles class="w-12 h-12 text-purple-400" />
+            </div>
+            <h3 class="text-xl font-bold mb-2">Get Personalized Recommendations</h3>
+            <p class="text-muted-foreground text-center max-w-md mb-6">
+              Sync your Spotify listening history to discover new Breton artists tailored to your taste
+            </p>
+            <Button @click="handleSyncArtists" :disabled="artistsStore.syncing" class="font-medium">
+              <Sparkles v-if="!artistsStore.syncing" class="w-4 h-4 mr-2" />
+              <span v-if="artistsStore.syncing">Syncing...</span>
+              <span v-else>Sync from Spotify</span>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <!-- Suggested Artists Grid -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div
+            v-for="(suggestion, index) in artistsStore.suggestedArtists.slice(0, 4)"
+            :key="suggestion.id"
+            v-motion
+            :initial="{ opacity: 0, y: 20 }"
+            :enter="{ opacity: 1, y: 0, transition: { delay: 100 + index * 50 } }"
+          >
+            <ArtistCard :artist="suggestion.artist" />
+          </div>
+        </div>
+
+        <!-- View More Suggestions -->
+        <div v-if="artistsStore.suggestedArtists.length > 4" class="text-center mt-6">
+          <Button as-child variant="outline" class="font-medium group">
+            <router-link to="/suggested-artists" class="flex items-center gap-2">
+              View all {{ artistsStore.suggestedCount }} suggestions
+              <ArrowRight class="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </router-link>
+          </Button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -210,7 +303,24 @@ const upcomingCount = computed(() => {
   }, 0)
 })
 
+async function handleSyncArtists() {
+  try {
+    await artistsStore.syncTopArtistsFromSpotify('medium_term', 20)
+  } catch (err) {
+    console.error('Failed to sync artists:', err)
+  }
+}
+
 onMounted(async () => {
   await artistsStore.fetchFollowedArtists()
+
+  // Fetch suggested artists if user is authenticated with Spotify
+  if (authStore.user?.provider === 'spotify') {
+    try {
+      await artistsStore.fetchSuggestedArtists()
+    } catch (err) {
+      console.error('Failed to fetch suggested artists:', err)
+    }
+  }
 })
 </script>

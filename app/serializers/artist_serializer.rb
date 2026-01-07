@@ -11,6 +11,9 @@ class ArtistSerializer
   attributes :facebook_url, :twitter_handle
   attributes :audiodb_status, :audiodb_enriched_at
 
+  # Spotify-enriched attributes
+  attributes :spotify_id, :spotify_url, :popularity
+
   attribute :followers_count do |artist|
     artist.followers.count
   end

@@ -139,7 +139,8 @@ import {
   Shield,
   LogOut,
   Menu,
-  ChevronDown
+  ChevronDown,
+  Sparkles
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -151,6 +152,7 @@ const navItems = computed(() => {
   const items = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/artists', label: 'Artists', icon: Users },
+    { to: '/suggested-artists', label: 'Suggested', icon: Sparkles },
     { to: '/map', label: 'Map', icon: Map }
   ]
 

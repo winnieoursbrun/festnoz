@@ -20,6 +20,32 @@
         </p>
       </div>
 
+      <!-- Suggested Artists Banner -->
+      <Card
+        v-if="authStore.user?.provider === 'spotify'"
+        class="mb-6 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/20"
+        v-motion
+        :initial="{ opacity: 0, y: 20 }"
+        :enter="{ opacity: 1, y: 0, transition: { delay: 50 } }"
+      >
+        <CardContent class="py-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-2 rounded-lg bg-purple-500/20">
+                <Sparkles class="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p class="font-semibold text-foreground">Get personalized recommendations</p>
+                <p class="text-sm text-muted-foreground">Discover artists based on your Spotify listening history</p>
+              </div>
+            </div>
+            <Button @click="$router.push('/suggested-artists')" variant="default" class="shrink-0">
+              View Suggestions
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <!-- Search & Filters -->
       <Card
         class="mb-8 bg-card/50 border-border/50 backdrop-blur-sm"
@@ -163,6 +189,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useArtistsStore } from '../stores/artists'
+import { useAuthStore } from '../stores/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -183,10 +210,12 @@ import {
   Filter,
   SlidersHorizontal,
   X,
-  Music
+  Music,
+  Sparkles
 } from 'lucide-vue-next'
 
 const artistsStore = useArtistsStore()
+const authStore = useAuthStore()
 
 const searchQuery = ref('')
 const selectedGenre = ref('all')

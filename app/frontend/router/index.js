@@ -49,6 +49,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/suggested-artists',
+    name: 'SuggestedArtists',
+    component: () => import('../views/SuggestedArtists.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/map',
     name: 'ConcertsMap',
     component: () => import('../views/ConcertsMap.vue'),

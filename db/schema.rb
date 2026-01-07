@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_07_230248) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_07_232257) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,6 +32,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_230248) do
     t.string "logo_url"
     t.string "music_style"
     t.string "name", null: false
+    t.integer "popularity"
+    t.string "spotify_id"
+    t.string "spotify_url"
     t.string "thumbnail_url"
     t.string "twitter_handle"
     t.datetime "updated_at", null: false
@@ -40,6 +43,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_230248) do
     t.index ["audiodb_status"], name: "index_artists_on_audiodb_status"
     t.index ["genre"], name: "index_artists_on_genre"
     t.index ["name"], name: "index_artists_on_name"
+    t.index ["spotify_id"], name: "index_artists_on_spotify_id", unique: true
   end
 
   create_table "concerts", force: :cascade do |t|
@@ -71,6 +75,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_230248) do
     t.string "jti", null: false
     t.datetime "updated_at", null: false
     t.index ["jti"], name: "index_jwt_denylist_on_jti", unique: true
+  end
+
+  create_table "suggested_artists", force: :cascade do |t|
+    t.bigint "artist_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "rank"
+    t.string "spotify_artist_id"
+    t.datetime "synced_at"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["artist_id"], name: "index_suggested_artists_on_artist_id"
+    t.index ["synced_at"], name: "index_suggested_artists_on_synced_at"
+    t.index ["user_id", "artist_id"], name: "index_suggested_artists_on_user_id_and_artist_id", unique: true
+    t.index ["user_id"], name: "index_suggested_artists_on_user_id"
   end
 
   create_table "user_artists", force: :cascade do |t|
@@ -112,6 +130,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_230248) do
   end
 
   add_foreign_key "concerts", "artists"
+  add_foreign_key "suggested_artists", "artists"
+  add_foreign_key "suggested_artists", "users"
   add_foreign_key "user_artists", "artists"
   add_foreign_key "user_artists", "users"
 end

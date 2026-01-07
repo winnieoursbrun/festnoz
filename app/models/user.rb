@@ -13,6 +13,8 @@ class User < ApplicationRecord
   # Associations
   has_many :user_artists, dependent: :destroy
   has_many :followed_artists, through: :user_artists, source: :artist
+  has_many :suggested_artists, dependent: :destroy
+  has_many :suggested_artist_records, through: :suggested_artists, source: :artist
 
   # Validations
   validates :username, presence: true, uniqueness: true,
@@ -22,14 +24,19 @@ class User < ApplicationRecord
 
   # Class methods
   def self.from_omniauth(auth)
-    where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
-      user.email = auth.info.email || "#{auth.uid}@spotify.temp"
-      user.password = Devise.friendly_token[0, 20]
-      user.username = auth.info.display_name || auth.info.nickname || "spotify_user_#{auth.uid}"
-      user.spotify_access_token = auth.credentials.token
-      user.spotify_refresh_token = auth.credentials.refresh_token
-      user.spotify_token_expires_at = Time.at(auth.credentials.expires_at) if auth.credentials.expires_at
+    user = where(provider: auth.provider, uid: auth.uid).first_or_initialize do |u|
+      u.email = auth.info.email || "#{auth.uid}@spotify.temp"
+      u.password = Devise.friendly_token[0, 20]
+      u.username = auth.info.display_name || auth.info.nickname || "spotify_user_#{auth.uid}"
     end
+
+    # Always update Spotify tokens (even for existing users)
+    user.spotify_access_token = auth.credentials.token
+    user.spotify_refresh_token = auth.credentials.refresh_token
+    user.spotify_token_expires_at = Time.at(auth.credentials.expires_at) if auth.credentials.expires_at
+    user.save!
+
+    user
   end
 
   # Instance methods

@@ -6,14 +6,18 @@ export const useArtistsStore = defineStore('artists', () => {
   // State
   const artists = ref([])
   const followedArtists = ref([])
+  const suggestedArtists = ref([])
   const currentArtist = ref(null)
   const loading = ref(false)
   const error = ref(null)
   const followedArtistsFetched = ref(false)
+  const suggestedArtistsFetched = ref(false)
+  const syncing = ref(false)
 
   // Getters
   const artistCount = computed(() => artists.value.length)
   const followedCount = computed(() => followedArtists.value.length)
+  const suggestedCount = computed(() => suggestedArtists.value.length)
 
   // Actions
   async function fetchArtists(filters = {}) {
@@ -83,6 +87,9 @@ export const useArtistsStore = defineStore('artists', () => {
       if (!followedArtists.value.find(a => a.id === artist.id)) {
         followedArtists.value.push(artist)
       }
+
+      // Remove from suggested artists list if present
+      suggestedArtists.value = suggestedArtists.value.filter(sa => sa.artist.id !== artistId)
 
       return response.data
     } catch (err) {
@@ -181,15 +188,77 @@ export const useArtistsStore = defineStore('artists', () => {
     return followedArtists.value.some(a => a.id === artistId)
   }
 
+  async function fetchSuggestedArtists(force = false) {
+    // Prevent duplicate fetches
+    if (suggestedArtistsFetched.value && !force) return suggestedArtists.value
+    if (loading.value) return suggestedArtists.value
+
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.get('/api/v1/suggested_artists')
+      suggestedArtists.value = response.data.data
+      suggestedArtistsFetched.value = true
+      return suggestedArtists.value
+    } catch (err) {
+      error.value = err.response?.data?.error || 'Failed to fetch suggested artists'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function syncTopArtistsFromSpotify(timeRange = 'medium_term', limit = 20) {
+    syncing.value = true
+    error.value = null
+    try {
+      const response = await api.post('/api/v1/suggested_artists/sync', {
+        time_range: timeRange,
+        limit: limit
+      })
+
+      suggestedArtists.value = response.data.data
+      suggestedArtistsFetched.value = true
+      return response.data
+    } catch (err) {
+      error.value = err.response?.data?.error || 'Failed to sync top artists from Spotify'
+      throw err
+    } finally {
+      syncing.value = false
+    }
+  }
+
+  async function removeSuggestedArtist(suggestionId) {
+    loading.value = true
+    error.value = null
+    try {
+      await api.delete(`/api/v1/suggested_artists/${suggestionId}`)
+
+      // Remove from suggested artists list
+      suggestedArtists.value = suggestedArtists.value.filter(sa => sa.id !== suggestionId)
+
+      return true
+    } catch (err) {
+      error.value = err.response?.data?.error || 'Failed to remove suggested artist'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     artists,
     followedArtists,
+    suggestedArtists,
     currentArtist,
     loading,
     error,
+    syncing,
     followedArtistsFetched,
+    suggestedArtistsFetched,
     artistCount,
     followedCount,
+    suggestedCount,
     fetchArtists,
     fetchArtist,
     fetchFollowedArtists,
@@ -198,6 +267,9 @@ export const useArtistsStore = defineStore('artists', () => {
     createArtist,
     updateArtist,
     deleteArtist,
-    isFollowing
+    isFollowing,
+    fetchSuggestedArtists,
+    syncTopArtistsFromSpotify,
+    removeSuggestedArtist
   }
 })

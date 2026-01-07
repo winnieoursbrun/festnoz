@@ -66,6 +66,13 @@ Rails.application.routes.draw do
           end
         end
       end
+
+      # Suggested artists
+      resources :suggested_artists, only: [ :index, :destroy ] do
+        collection do
+          post :sync
+        end
+      end
     end
   end
 
