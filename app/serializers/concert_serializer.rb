@@ -9,13 +9,15 @@ class ConcertSerializer
              :starts_at,
              :ends_at,
              :venue_name,
-             :address,
+             :venue_address,
              :city,
              :country,
              :latitude,
              :longitude,
              :price,
              :ticket_url,
+             :ticketmaster_id,
+             :ticketmaster_url,
              :created_at
 
   attribute :artist do |concert|
@@ -23,12 +25,13 @@ class ConcertSerializer
       id: concert.artist.id,
       name: concert.artist.name,
       genre: concert.artist.genre,
-      image_url: concert.artist.image_url
+      image_url: concert.artist.image_url,
+      primary_image_url: concert.artist.primary_image_url
     }
   end
 
   attribute :is_past do |concert|
-    concert.ends_at < Time.current
+    concert.starts_at < Time.current
   end
 
   attribute :is_upcoming do |concert|

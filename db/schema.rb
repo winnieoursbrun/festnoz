@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_07_232257) do
+ActiveRecord::Schema[8.1].define(version: 2026_01_08_214025) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -36,6 +36,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_232257) do
     t.string "spotify_id"
     t.string "spotify_url"
     t.string "thumbnail_url"
+    t.string "ticketmaster_id"
+    t.string "ticketmaster_name"
+    t.string "ticketmaster_url"
     t.string "twitter_handle"
     t.datetime "updated_at", null: false
     t.string "website"
@@ -44,6 +47,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_232257) do
     t.index ["genre"], name: "index_artists_on_genre"
     t.index ["name"], name: "index_artists_on_name"
     t.index ["spotify_id"], name: "index_artists_on_spotify_id", unique: true
+    t.index ["ticketmaster_id"], name: "index_artists_on_ticketmaster_id", unique: true
   end
 
   create_table "concerts", force: :cascade do |t|
@@ -59,6 +63,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_232257) do
     t.string "price_currency", default: "EUR"
     t.datetime "starts_at", null: false
     t.string "ticket_url"
+    t.string "ticketmaster_id"
+    t.string "ticketmaster_url"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.string "venue_address"
@@ -67,6 +73,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_07_232257) do
     t.index ["city"], name: "index_concerts_on_city"
     t.index ["latitude", "longitude"], name: "index_concerts_on_latitude_and_longitude"
     t.index ["starts_at"], name: "index_concerts_on_starts_at"
+    t.index ["ticketmaster_id"], name: "index_concerts_on_ticketmaster_id", unique: true
   end
 
   create_table "jwt_denylist", force: :cascade do |t|

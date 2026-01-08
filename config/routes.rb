@@ -47,6 +47,7 @@ Rails.application.routes.draw do
         member do
           get :concerts
           post :enrich
+          post :fetch_events
         end
       end
 

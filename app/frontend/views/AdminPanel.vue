@@ -183,10 +183,14 @@
                               <MoreHorizontal class="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" class="w-40">
+                          <DropdownMenuContent align="end" class="w-48">
                             <DropdownMenuItem @click="openArtistForm(artist)" class="cursor-pointer">
                               <Pencil class="w-4 h-4 mr-2" />
                               Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem @click="handleFetchEvents(artist)" class="cursor-pointer">
+                              <Calendar class="w-4 h-4 mr-2" />
+                              Fetch Events
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem @click="confirmDeleteArtist(artist)" class="cursor-pointer text-destructive focus:text-destructive">
@@ -491,6 +495,31 @@ async function executeDelete() {
   } finally {
     itemToDelete.value = null
     deleteType.value = null
+  }
+}
+
+async function handleFetchEvents(artist: any) {
+  const loadingToast = toast.loading(`Fetching events for ${artist.name}...`)
+
+  try {
+    const result = await artistsStore.fetchEventsForArtist(artist.id)
+    toast.dismiss(loadingToast)
+
+    if (result.created > 0) {
+      toast.success(`Successfully fetched ${result.created} out of ${result.total} events from Ticketmaster`)
+    } else if (result.total === 0) {
+      toast.info(`No events found for ${artist.name} on Ticketmaster`)
+    } else {
+      toast.warning(`Found ${result.total} events but none were new`)
+    }
+
+    if (result.errors && result.errors.length > 0) {
+      console.warn('Some events failed to import:', result.errors)
+    }
+  } catch (error) {
+    toast.dismiss(loadingToast)
+    console.error('Failed to fetch events:', error)
+    toast.error('Failed to fetch events from Ticketmaster')
   }
 }
 

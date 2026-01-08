@@ -259,6 +259,15 @@
                     <ExternalLink class="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
                   </a>
                 </Button>
+                <Button v-if="artist.ticketmaster_url || artist.name" as-child variant="outline" class="w-full justify-start bg-background/50 hover:bg-accent group">
+                  <a :href="ticketmasterUrl" target="_blank" class="flex items-center gap-3">
+                    <div class="p-1.5 rounded-md bg-purple-500/10">
+                      <Ticket class="w-4 h-4 text-purple-500" />
+                    </div>
+                    <span class="font-medium">Ticketmaster</span>
+                    <ExternalLink class="w-3 h-3 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </a>
+                </Button>
               </CardContent>
             </Card>
 
@@ -371,7 +380,17 @@ const displayedBio = computed(() => {
 const showExpandButton = computed(() => artistBio.value.length > MAX_BIO_LENGTH)
 
 const hasLinks = computed(() => {
-  return artist.value?.website || artist.value?.facebook_url || artist.value?.twitter_handle
+  return artist.value?.website || artist.value?.facebook_url || artist.value?.twitter_handle || artist.value?.ticketmaster_url
+})
+
+const ticketmasterUrl = computed(() => {
+  // Use stored Ticketmaster URL if available, otherwise fall back to search
+  if (artist.value?.ticketmaster_url) {
+    return artist.value.ticketmaster_url
+  }
+  if (!artist.value?.name) return 'https://www.ticketmaster.com'
+  const encodedName = encodeURIComponent(artist.value.name)
+  return `https://www.ticketmaster.com/search?q=${encodedName}`
 })
 
 onMounted(async () => {

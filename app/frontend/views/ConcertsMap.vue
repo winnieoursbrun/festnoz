@@ -44,23 +44,45 @@
                   class="pl-10 bg-background/50 border-border/50"
                 />
               </div>
-              <Select v-model="searchRadius" @update:model-value="handleRadiusChange">
-                <SelectTrigger class="w-[110px] bg-background/50 border-border/50">
-                  <Ruler class="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="25">25 km</SelectItem>
-                  <SelectItem value="50">50 km</SelectItem>
-                  <SelectItem value="100">100 km</SelectItem>
-                  <SelectItem value="200">200 km</SelectItem>
-                </SelectContent>
-              </Select>
+              <div class="flex flex-col gap-1 min-w-[180px] p-3 rounded-lg bg-background/50 border border-border/50">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center gap-2">
+                    <Ruler class="w-4 h-4 text-muted-foreground" />
+                    <span class="text-xs text-muted-foreground">Radius</span>
+                  </div>
+                  <span class="text-xs font-semibold text-primary">{{ radiusDisplayText }}</span>
+                </div>
+                <Slider
+                  v-model="searchRadius"
+                  :min="10"
+                  :max="10000"
+                  :step="10"
+                  @update:model-value="handleRadiusChange"
+                  class="cursor-pointer"
+                />
+              </div>
             </div>
+
+            <Select v-model="selectedArtistId">
+              <SelectTrigger class="w-[180px] bg-background/50 border-border/50">
+                <Users class="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="All Artists" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Artists</SelectItem>
+                <SelectItem
+                  v-for="artist in uniqueArtists"
+                  :key="artist.id"
+                  :value="artist.id.toString()"
+                >
+                  {{ artist.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
             <Badge variant="secondary" class="justify-center py-2 px-4 bg-primary/10 text-primary border-primary/20">
               <Music class="w-3 h-3 mr-1.5" />
-              {{ concertsStore.nearbyConcerts.length }} concerts
+              {{ filteredConcerts.length }} concerts
             </Badge>
           </div>
         </div>
@@ -72,8 +94,9 @@
       <MapView
         v-if="mapCenter"
         :center="mapCenter"
-        :concerts="concertsStore.nearbyConcerts"
+        :concerts="filteredConcerts"
         :zoom="mapZoom"
+        :selected-artist-id="selectedArtistId !== 'all' ? Number.parseInt(selectedArtistId) : null"
         @concert-click="showConcertDetails"
       />
 
@@ -188,13 +211,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useConcertsStore } from '../stores/concerts'
 import { getCurrentLocation, searchLocation as geocodeSearch } from '../services/geocoding'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Slider } from '@/components/ui/slider'
 import {
   Select,
   SelectContent,
@@ -222,7 +246,8 @@ import {
   Clock,
   Building,
   MapPin,
-  Ticket
+  Ticket,
+  Users
 } from 'lucide-vue-next'
 
 const concertsStore = useConcertsStore()
@@ -230,9 +255,44 @@ const concertsStore = useConcertsStore()
 const mapCenter = ref<[number, number] | null>(null)
 const mapZoom = ref(10)
 const searchQuery = ref('')
-const searchRadius = ref('50')
+const searchRadius = ref([10000]) // Default to infinite (10000 km)
 const loadingLocation = ref(false)
 const selectedConcert = ref<any>(null)
+const selectedArtistId = ref<string>('all')
+
+// Computed property for radius display text
+const radiusDisplayText = computed(() => {
+  const radius = searchRadius.value[0]
+  if (radius >= 10000) {
+    return 'Unlimited'
+  }
+  return `${radius} km`
+})
+
+// Get unique artists from concerts
+const uniqueArtists = computed(() => {
+  const artistsMap = new Map()
+  concertsStore.nearbyConcerts.forEach(concert => {
+    if (concert.artist && !artistsMap.has(concert.artist.id)) {
+      artistsMap.set(concert.artist.id, {
+        id: concert.artist.id,
+        name: concert.artist.name,
+        image_url: concert.artist.primary_image_url || concert.artist.image_url
+      })
+    }
+  })
+  return Array.from(artistsMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+})
+
+// Filter concerts by selected artist
+const filteredConcerts = computed(() => {
+  if (selectedArtistId.value === 'all') {
+    return concertsStore.nearbyConcerts
+  }
+  return concertsStore.nearbyConcerts.filter(
+    concert => concert.artist?.id === Number.parseInt(selectedArtistId.value)
+  )
+})
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -295,7 +355,8 @@ function handleRadiusChange() {
 
 async function updateConcerts(lat: number, lng: number) {
   try {
-    await concertsStore.fetchNearbyConcerts(lat, lng, Number.parseInt(searchRadius.value))
+    const radius = searchRadius.value[0]
+    await concertsStore.fetchNearbyConcerts(lat, lng, radius)
   } catch (error) {
     console.error('Failed to fetch concerts:', error)
   }

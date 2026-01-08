@@ -72,10 +72,10 @@
 
         <!-- Actions -->
         <div class="flex gap-2">
-          <Button v-if="concert.ticket_url" as-child size="sm" class="font-medium">
-            <a :href="concert.ticket_url" target="_blank" class="flex items-center gap-2">
+          <Button v-if="ticketUrl" as-child size="sm" :class="isTicketmaster ? 'bg-[#026CDF] hover:bg-[#025BB5] text-white font-medium' : 'font-medium'">
+            <a :href="ticketUrl" target="_blank" class="flex items-center gap-2">
               <Ticket class="w-4 h-4" />
-              Get Tickets
+              {{ isTicketmaster ? 'Book on Ticketmaster' : 'Get Tickets' }}
             </a>
           </Button>
           <Button
@@ -112,6 +112,8 @@ interface Concert {
   price?: number
   distance?: number
   ticket_url?: string
+  ticketmaster_id?: string
+  ticketmaster_url?: string
   is_upcoming?: boolean
   artist?: {
     id: number
@@ -143,6 +145,15 @@ const endTime = computed(() => endDate.value.toLocaleString('en-US', {
   hour: '2-digit',
   minute: '2-digit'
 }))
+
+// Prioritize Ticketmaster URL over generic ticket URL
+const ticketUrl = computed(() => {
+  return props.concert.ticketmaster_url || props.concert.ticket_url
+})
+
+const isTicketmaster = computed(() => {
+  return Boolean(props.concert.ticketmaster_url)
+})
 
 function formatPrice(price: number): string {
   return Number(price).toFixed(2)

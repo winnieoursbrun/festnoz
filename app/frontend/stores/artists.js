@@ -246,6 +246,20 @@ export const useArtistsStore = defineStore('artists', () => {
     }
   }
 
+  async function fetchEventsForArtist(artistId) {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.post(`/api/v1/artists/${artistId}/fetch_events`)
+      return response.data
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to fetch events from Ticketmaster'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     artists,
     followedArtists,
@@ -270,6 +284,7 @@ export const useArtistsStore = defineStore('artists', () => {
     isFollowing,
     fetchSuggestedArtists,
     syncTopArtistsFromSpotify,
-    removeSuggestedArtist
+    removeSuggestedArtist,
+    fetchEventsForArtist
   }
 })

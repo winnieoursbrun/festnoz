@@ -14,6 +14,9 @@ class ArtistSerializer
   # Spotify-enriched attributes
   attributes :spotify_id, :spotify_url, :popularity
 
+  # Ticketmaster attributes
+  attributes :ticketmaster_id, :ticketmaster_url, :ticketmaster_name
+
   attribute :followers_count do |artist|
     artist.followers.count
   end

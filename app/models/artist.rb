@@ -15,6 +15,7 @@ class Artist < ApplicationRecord
   # Callbacks
   after_create_commit :schedule_enrichment, if: :should_enrich?
   after_update_commit :schedule_enrichment_on_name_change, if: :saved_change_to_name?
+  after_create_commit :schedule_event_fetch
 
   # Scopes
   scope :by_genre, ->(genre) { where(genre: genre) }
@@ -80,6 +81,31 @@ class Artist < ApplicationRecord
 
   def primary_image_url
     thumbnail_url || image_url
+  end
+
+  def schedule_event_fetch
+    FetchArtistEventsJob.perform_later(id)
+  end
+
+  def fetch_events_now!
+    FetchArtistEventsJob.perform_now(id)
+  end
+
+  # Ticketmaster methods
+  def has_ticketmaster_entity?
+    ticketmaster_id.present?
+  end
+
+  def fetch_ticketmaster_entity
+    return { success: false, error: "Artist not persisted" } unless persisted?
+
+    TicketmasterService.new.fetch_and_store_artist(self)
+  end
+
+  def fetch_ticketmaster_entity!
+    result = fetch_ticketmaster_entity
+    raise "Failed to fetch Ticketmaster entity: #{result[:error]}" unless result[:success]
+    result
   end
 
   private

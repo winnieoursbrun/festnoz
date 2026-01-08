@@ -4,6 +4,7 @@ import { MotionPlugin } from '@vueuse/motion'
 import App from '../App.vue'
 import router from '../router'
 import '../assets/stylesheets/application.css'
+import 'leaflet/dist/leaflet.css'
 
 const app = createApp(App)
 const pinia = createPinia()
