@@ -8,8 +8,7 @@ gem "propshaft"
 gem "pg", "~> 1.1"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
-# Use Tailwind CSS [https://github.com/rails/tailwindcss-rails]
-gem "tailwindcss-rails"
+# Tailwind CSS is handled by Vite (see vite.config.ts)
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
