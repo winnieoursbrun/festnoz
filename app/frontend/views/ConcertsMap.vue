@@ -53,10 +53,10 @@
                   <span class="text-xs font-semibold text-primary">{{ radiusDisplayText }}</span>
                 </div>
                 <Slider
-                  v-model="searchRadius"
-                  :min="10"
-                  :max="10000"
-                  :step="10"
+                  v-model="sliderPosition"
+                  :min="0"
+                  :max="100"
+                  :step="1"
                   @update:model-value="handleRadiusChange"
                   class="cursor-pointer"
                 />
@@ -255,16 +255,42 @@ const concertsStore = useConcertsStore()
 const mapCenter = ref<[number, number] | null>(null)
 const mapZoom = ref(10)
 const searchQuery = ref('')
-const searchRadius = ref([10000]) // Default to infinite (10000 km)
+const sliderPosition = ref([100]) // Slider position (0-100), default to max
 const loadingLocation = ref(false)
 const selectedConcert = ref<any>(null)
 const selectedArtistId = ref<string>('all')
 
+// Logarithmic scale constants
+const MIN_RADIUS = 10
+const MAX_RADIUS = 10000
+const LOG_MIN = Math.log(MIN_RADIUS)
+const LOG_MAX = Math.log(MAX_RADIUS)
+
+// Convert slider position (0-100) to actual radius using logarithmic scale
+function sliderToRadius(position: number): number {
+  const logRadius = LOG_MIN + (position / 100) * (LOG_MAX - LOG_MIN)
+  return Math.round(Math.exp(logRadius))
+}
+
+// Convert radius to slider position (0-100) using logarithmic scale
+function radiusToSlider(radius: number): number {
+  const logRadius = Math.log(radius)
+  return Math.round(((logRadius - LOG_MIN) / (LOG_MAX - LOG_MIN)) * 100)
+}
+
+// Computed property for actual radius from slider position
+const searchRadius = computed(() => {
+  return sliderToRadius(sliderPosition.value[0])
+})
+
 // Computed property for radius display text
 const radiusDisplayText = computed(() => {
-  const radius = searchRadius.value[0]
+  const radius = searchRadius.value
   if (radius >= 10000) {
     return 'Unlimited'
+  }
+  if (radius >= 1000) {
+    return `${Math.round(radius / 100) / 10}k km`
   }
   return `${radius} km`
 })
@@ -355,7 +381,7 @@ function handleRadiusChange() {
 
 async function updateConcerts(lat: number, lng: number) {
   try {
-    const radius = searchRadius.value[0]
+    const radius = searchRadius.value
     await concertsStore.fetchNearbyConcerts(lat, lng, radius)
   } catch (error) {
     console.error('Failed to fetch concerts:', error)
