@@ -73,4 +73,4 @@ group :development do
   gem "web-console"
 end
 
-gem "psych", "< 5.3" # Have a segfault with 5.3 and Rails 8.1
+gem "psych", "< 5.4" # Have a segfault with 5.3 and Rails 8.1
