@@ -22,9 +22,6 @@ gem "omniauth"
 gem "omniauth-spotify"
 gem "omniauth-rails_csrf_protection"
 
-# Use JSON API serializer
-gem "jsonapi-serializer"
-
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS)
 gem "rack-cors"
 

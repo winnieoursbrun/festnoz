@@ -8,13 +8,7 @@ module Api
         def index
           @artists = current_user.followed_artists.order(:name)
 
-          render json: {
-            artists: @artists.map do |artist|
-              serialized = ArtistSerializer.new(artist).serializable_hash[:data][:attributes]
-              serialized[:upcoming_concerts_count] = artist.upcoming_concerts.count
-              serialized
-            end
-          }, status: :ok
+          render :index, status: :ok
         end
 
         # POST /api/v1/user/followed_artists
@@ -30,10 +24,7 @@ module Api
 
           current_user.follow(@artist)
 
-          render json: {
-            message: 'Artist followed successfully',
-            artist: ArtistSerializer.new(@artist).serializable_hash[:data][:attributes]
-          }, status: :created
+          render :create, status: :created
         end
 
         # DELETE /api/v1/user/followed_artists/:artist_id

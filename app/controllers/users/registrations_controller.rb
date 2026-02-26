@@ -16,7 +16,7 @@ module Users
         if resource.persisted?
           render json: {
             message: "Signed up successfully",
-            user: UserSerializer.new(resource).serializable_hash[:data][:attributes]
+            user: serialize_user(resource)
           }, status: :created
         else
           render json: {
@@ -54,6 +54,19 @@ module Users
       base_url = ENV.fetch("URL", "http://127.0.0.1:3000")
       base_url = "http://#{base_url}" unless base_url.start_with?("http")
       "#{base_url}/auth/success?token=#{token}"
+    end
+
+    def serialize_user(user)
+      {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        admin: user.admin,
+        created_at: user.created_at,
+        provider: user.provider,
+        followed_artists_count: user.followed_artists.count,
+        spotify_connected: user.spotify_authenticated?
+      }
     end
   end
 end

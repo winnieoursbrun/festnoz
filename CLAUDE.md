@@ -58,7 +58,7 @@ bundle exec bundler-audit # Gem vulnerability check
 - **Database**: PostgreSQL with geographic queries (geocoder gem for location services)
 - **Geocoding**: geocoder gem with Nominatim (OpenStreetMap) for automatic address-to-coordinate conversion
 - **Authentication**: Devise + devise-jwt for token-based auth
-- **Serialization**: jsonapi-serializer gem
+- **Serialization**: jbuilder gem (JSON view templates in `app/views/api/v1/`)
 - **Key models**: User, Artist, Concert, UserArtist (follows)
 
 ### Frontend (Vue SPA)

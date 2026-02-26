@@ -26,18 +26,12 @@ module Api
         # Order by date
         @concerts = @concerts.order(:starts_at)
 
-        render json: {
-          concerts: @concerts.map { |concert| ConcertSerializer.new(concert).serializable_hash[:data][:attributes] }
-        }, status: :ok
+        render :index, status: :ok
       end
-
-      # GET /api/v1/concerts/upcoming
       def upcoming
         @concerts = Concert.includes(:artist).upcoming.order(:starts_at).limit(50)
 
-        render json: {
-          concerts: @concerts.map { |concert| ConcertSerializer.new(concert).serializable_hash[:data][:attributes] }
-        }, status: :ok
+        render :upcoming, status: :ok
       end
 
       # GET /api/v1/concerts/nearby?lat=48.8566&lng=2.3522&radius=50
@@ -58,13 +52,7 @@ module Api
                             .where("starts_at >= ?", Time.current)
                             .order("distance ASC")
 
-        render json: {
-          concerts: @concerts.map do |concert|
-            serialized = ConcertSerializer.new(concert).serializable_hash[:data][:attributes]
-            serialized[:distance] = concert.distance.round(2)
-            serialized
-          end
-        }, status: :ok
+        render :nearby, status: :ok
       rescue Geocoder::Error => e
         Rails.logger.error("Geocoding error in nearby: #{e.message}")
         render json: {
@@ -75,9 +63,7 @@ module Api
 
       # GET /api/v1/concerts/:id
       def show
-        render json: {
-          concert: ConcertSerializer.new(@concert).serializable_hash[:data][:attributes]
-        }, status: :ok
+        render :show, status: :ok
       end
 
       # POST /api/v1/concerts
@@ -85,10 +71,7 @@ module Api
         @concert = Concert.new(concert_params)
 
         if @concert.save
-          render json: {
-            message: 'Concert created successfully',
-            concert: ConcertSerializer.new(@concert).serializable_hash[:data][:attributes]
-          }, status: :created
+          render :create, status: :created
         else
           render json: {
             error: 'Concert could not be created',
@@ -100,10 +83,7 @@ module Api
       # PATCH/PUT /api/v1/concerts/:id
       def update
         if @concert.update(concert_params)
-          render json: {
-            message: 'Concert updated successfully',
-            concert: ConcertSerializer.new(@concert).serializable_hash[:data][:attributes]
-          }, status: :ok
+          render :update, status: :ok
         else
           render json: {
             error: 'Concert could not be updated',

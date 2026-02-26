@@ -7,22 +7,13 @@ module Api
 
       # GET /api/v1/suggested_artists
       def index
-        suggested_artists = current_user.suggested_artists
-                                        .not_followed
-                                        .includes(:artist)
-                                        .ordered
-                                        .limit(50)
+        @suggested_artists = current_user.suggested_artists
+                                         .not_followed
+                                         .includes(:artist)
+                                         .ordered
+                                         .limit(50)
 
-        render json: {
-          data: suggested_artists.map { |sa|
-            {
-              id: sa.id,
-              rank: sa.rank,
-              synced_at: sa.synced_at,
-              artist: ArtistSerializer.new(sa.artist).serializable_hash[:data][:attributes]
-            }
-          }
-        }
+        render :index
       end
 
       # POST /api/v1/suggested_artists/sync
@@ -38,24 +29,13 @@ module Api
         )
 
         # Filter out followed artists from the response
-        suggestions = current_user.suggested_artists
+        @suggested_artists = current_user.suggested_artists
                                   .not_followed
                                   .includes(:artist)
                                   .ordered
                                   .limit(50)
-
-        render json: {
-          message: "Successfully synced #{all_suggestions.count} suggested artists (#{suggestions.count} new)",
-          count: suggestions.count,
-          data: suggestions.map { |sa|
-            {
-              id: sa.id,
-              rank: sa.rank,
-              synced_at: sa.synced_at,
-              artist: ArtistSerializer.new(sa.artist).serializable_hash[:data][:attributes]
-            }
-          }
-        }
+        @message = "Successfully synced #{all_suggestions.count} suggested artists (#{@suggested_artists.count} new)"
+        render :sync
       rescue StandardError => e
         Rails.logger.error("Failed to sync suggested artists: #{e.message}")
         Rails.logger.error(e.backtrace.join("\n"))

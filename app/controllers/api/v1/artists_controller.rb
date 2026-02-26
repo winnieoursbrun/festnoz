@@ -18,9 +18,7 @@ module Api
         # Order by name
         @artists = @artists.order(:name)
 
-        render json: {
-          artists: @artists.map { |artist| ArtistSerializer.new(artist).serializable_hash[:data][:attributes] }
-        }, status: :ok
+        render :index, status: :ok
       end
 
       # GET /api/v1/artists/:id
@@ -28,26 +26,19 @@ module Api
         # Trigger lazy enrichment if not yet done
         schedule_lazy_enrichment if @artist.enrichment_pending?
 
-        render json: {
-          artist: ArtistSerializer.new(@artist).serializable_hash[:data][:attributes],
-          is_following: current_user&.following?(@artist) || false,
-          enrichment_status: @artist.audiodb_status
-        }, status: :ok
+        @is_following = current_user&.following?(@artist) || false
+        render :show, status: :ok
       end
 
       # POST /api/v1/artists/:id/enrich
       def enrich
         if @artist.force_enrich!
-          render json: {
-            message: "Artist enriched successfully",
-            artist: ArtistSerializer.new(@artist.reload).serializable_hash[:data][:attributes]
-          }, status: :ok
+          @artist.reload
+          @message = "Artist enriched successfully"
         else
-          render json: {
-            message: "Artist not found in TheAudioDB",
-            artist: ArtistSerializer.new(@artist).serializable_hash[:data][:attributes]
-          }, status: :ok
+          @message = "Artist not found in TheAudioDB"
         end
+        render :enrich, status: :ok
       end
 
       # POST /api/v1/artists/fetch_all_events
@@ -82,9 +73,7 @@ module Api
       def concerts
         @concerts = @artist.upcoming_concerts
 
-        render json: {
-          concerts: @concerts.map { |concert| ConcertSerializer.new(concert).serializable_hash[:data][:attributes] }
-        }, status: :ok
+        render :concerts, status: :ok
       end
 
       # POST /api/v1/artists
@@ -92,10 +81,7 @@ module Api
         @artist = Artist.new(artist_params)
 
         if @artist.save
-          render json: {
-            message: 'Artist created successfully',
-            artist: ArtistSerializer.new(@artist).serializable_hash[:data][:attributes]
-          }, status: :created
+          render :create, status: :created
         else
           render json: {
             error: 'Artist could not be created',
@@ -107,10 +93,7 @@ module Api
       # PATCH/PUT /api/v1/artists/:id
       def update
         if @artist.update(artist_params)
-          render json: {
-            message: 'Artist updated successfully',
-            artist: ArtistSerializer.new(@artist).serializable_hash[:data][:attributes]
-          }, status: :ok
+          render :update, status: :ok
         else
           render json: {
             error: 'Artist could not be updated',

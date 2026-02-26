@@ -28,7 +28,7 @@ module Users
         # API request - return JSON with token
         render json: {
           message: "Logged in successfully",
-          user: UserSerializer.new(resource).serializable_hash[:data][:attributes]
+          user: serialize_user(resource)
         }, status: :ok
       else
         # HTML request from Devise views - redirect to frontend with token

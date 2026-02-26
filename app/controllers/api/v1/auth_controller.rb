@@ -5,9 +5,7 @@ module Api
     class AuthController < BaseController
       # GET /api/v1/auth/me
       def show
-        render json: {
-          user: UserSerializer.new(current_user).serializable_hash[:data][:attributes]
-        }, status: :ok
+        render :show, status: :ok
       end
     end
   end
