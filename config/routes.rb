@@ -74,6 +74,9 @@ Rails.application.routes.draw do
           post :sync
         end
       end
+
+      # Users (admin only)
+      resources :users, only: [ :index, :show, :create, :update, :destroy ]
     end
   end
 

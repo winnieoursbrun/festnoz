@@ -26,7 +26,7 @@
               @click="getUserLocation"
               :disabled="loadingLocation"
               variant="outline"
-              class="sm:w-auto bg-background/50 hover:bg-accent group"
+              class="h-10 sm:w-auto bg-background/50 hover:bg-accent group"
             >
               <Crosshair v-if="!loadingLocation" class="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
               <Loader2 v-else class="w-4 h-4 mr-2 animate-spin" />
@@ -41,35 +41,27 @@
                   @keyup.enter="searchLocation"
                   type="text"
                   placeholder="Search city..."
-                  class="pl-10 bg-background/50 border-border/50"
+                  class="h-10 pl-10 bg-background/50 border-border/50"
                 />
               </div>
-              <div class="flex flex-col gap-1 min-w-[180px] p-3 rounded-lg bg-background/50 border border-border/50">
-                <div class="flex items-center justify-between mb-1">
+              <div class="flex flex-col justify-center gap-1 min-w-[180px] h-10 px-3 rounded-lg bg-background/50 border border-border/50">
+                <div class="flex items-center justify-between">
                   <div class="flex items-center gap-2">
                     <Ruler class="w-4 h-4 text-muted-foreground" />
                     <span class="text-xs text-muted-foreground">Radius</span>
                   </div>
                   <span class="text-xs font-semibold text-primary">{{ radiusDisplayText }}</span>
                 </div>
-                <Slider
-                  v-model="sliderPosition"
-                  :min="0"
-                  :max="100"
-                  :step="1"
-                  @update:model-value="handleRadiusChange"
-                  class="cursor-pointer"
-                />
               </div>
             </div>
 
             <Select v-model="selectedArtistId">
-              <SelectTrigger class="w-[180px] bg-background/50 border-border/50">
+              <SelectTrigger class="h-10 w-[180px] bg-background/50 border-border/50">
                 <Users class="w-4 h-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="All Artists" />
+                <SelectValue placeholder="All Followed" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Artists</SelectItem>
+                <SelectItem value="all">All Followed</SelectItem>
                 <SelectItem
                   v-for="artist in uniqueArtists"
                   :key="artist.id"
@@ -80,7 +72,27 @@
               </SelectContent>
             </Select>
 
-            <Badge variant="secondary" class="justify-center py-2 px-4 bg-primary/10 text-primary border-primary/20">
+            <div class="relative flex-1 sm:w-[160px] group">
+              <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+              <Input
+                v-model="dateFrom"
+                type="date"
+                placeholder="From date"
+                class="h-10 pl-10 bg-background/50 border-border/50"
+              />
+            </div>
+
+            <div class="relative flex-1 sm:w-[160px] group">
+              <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
+              <Input
+                v-model="dateTo"
+                type="date"
+                placeholder="To date"
+                class="h-10 pl-10 bg-background/50 border-border/50"
+              />
+            </div>
+
+            <Badge variant="secondary" class="h-10 justify-center py-2 px-4 bg-primary/10 text-primary border-primary/20">
               <Music class="w-3 h-3 mr-1.5" />
               {{ filteredConcerts.length }} concerts
             </Badge>
@@ -213,12 +225,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useConcertsStore } from '../stores/concerts'
+import { useArtistsStore } from '../stores/artists'
 import { getCurrentLocation, searchLocation as geocodeSearch } from '../services/geocoding'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Slider } from '@/components/ui/slider'
 import {
   Select,
   SelectContent,
@@ -249,8 +261,10 @@ import {
   Ticket,
   Users
 } from 'lucide-vue-next'
+import { formatDateLong, formatTime as formatTimeUtil } from '@/lib/utils'
 
 const concertsStore = useConcertsStore()
+const artistsStore = useArtistsStore()
 
 const mapCenter = ref<[number, number] | null>(null)
 const mapZoom = ref(10)
@@ -259,6 +273,8 @@ const sliderPosition = ref([100]) // Slider position (0-100), default to max
 const loadingLocation = ref(false)
 const selectedConcert = ref<any>(null)
 const selectedArtistId = ref<string>('all')
+const dateFrom = ref<string>('')
+const dateTo = ref<string>('')
 
 // Logarithmic scale constants
 const MIN_RADIUS = 10
@@ -295,11 +311,13 @@ const radiusDisplayText = computed(() => {
   return `${radius} km`
 })
 
-// Get unique artists from concerts
+// Get unique followed artists that have concerts
 const uniqueArtists = computed(() => {
+  const followedArtistIds = new Set(artistsStore.followedArtists.map(artist => artist.id))
   const artistsMap = new Map()
+
   concertsStore.nearbyConcerts.forEach(concert => {
-    if (concert.artist && !artistsMap.has(concert.artist.id)) {
+    if (concert.artist && followedArtistIds.has(concert.artist.id) && !artistsMap.has(concert.artist.id)) {
       artistsMap.set(concert.artist.id, {
         id: concert.artist.id,
         name: concert.artist.name,
@@ -310,30 +328,47 @@ const uniqueArtists = computed(() => {
   return Array.from(artistsMap.values()).sort((a, b) => a.name.localeCompare(b.name))
 })
 
-// Filter concerts by selected artist
+// Filter concerts by followed artists, selected artist, and date range
 const filteredConcerts = computed(() => {
-  if (selectedArtistId.value === 'all') {
-    return concertsStore.nearbyConcerts
+  let concerts = concertsStore.nearbyConcerts
+
+  // Filter to only show concerts from followed artists
+  const followedArtistIds = new Set(artistsStore.followedArtists.map(artist => artist.id))
+  if (followedArtistIds.size > 0) {
+    concerts = concerts.filter(
+      concert => concert.artist?.id && followedArtistIds.has(concert.artist.id)
+    )
   }
-  return concertsStore.nearbyConcerts.filter(
-    concert => concert.artist?.id === Number.parseInt(selectedArtistId.value)
-  )
+
+  // Filter by selected artist
+  if (selectedArtistId.value !== 'all') {
+    concerts = concerts.filter(
+      concert => concert.artist?.id === Number.parseInt(selectedArtistId.value)
+    )
+  }
+
+  // Filter by date range
+  if (dateFrom.value) {
+    const fromDate = new Date(dateFrom.value)
+    fromDate.setHours(0, 0, 0, 0)
+    concerts = concerts.filter(concert => new Date(concert.starts_at) >= fromDate)
+  }
+
+  if (dateTo.value) {
+    const toDate = new Date(dateTo.value)
+    toDate.setHours(23, 59, 59, 999)
+    concerts = concerts.filter(concert => new Date(concert.starts_at) <= toDate)
+  }
+
+  return concerts
 })
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return formatDateLong(dateString)
 }
 
 function formatTime(dateString: string): string {
-  return new Date(dateString).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return formatTimeUtil(dateString)
 }
 
 async function getUserLocation() {
@@ -398,7 +433,10 @@ function centerOnConcert(concert: any) {
   selectedConcert.value = null
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // Fetch followed artists first
+  await artistsStore.fetchFollowedArtists()
+  // Then get location and fetch concerts
   getUserLocation()
 })
 </script>

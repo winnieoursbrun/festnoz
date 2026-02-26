@@ -45,6 +45,19 @@
             <span class="font-medium">Concerts</span>
             <Badge variant="secondary" class="ml-auto text-xs">{{ concertsStore.concerts.length }}</Badge>
           </button>
+          <button
+            @click="activeTab = 'users'"
+            :class="[
+              'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all',
+              activeTab === 'users'
+                ? 'bg-primary text-primary-foreground'
+                : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+            ]"
+          >
+            <Users class="w-5 h-5" />
+            <span class="font-medium">Users</span>
+            <Badge variant="secondary" class="ml-auto text-xs">{{ usersStore.users.length }}</Badge>
+          </button>
         </nav>
       </div>
 
@@ -59,6 +72,10 @@
           <div class="flex items-center justify-between">
             <span class="text-sm text-muted-foreground">Total Concerts</span>
             <span class="font-bold text-gradient">{{ concertsStore.concerts.length }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-sm text-muted-foreground">Total Users</span>
+            <span class="font-bold text-gradient-purple">{{ usersStore.users.length }}</span>
           </div>
         </div>
       </div>
@@ -92,6 +109,15 @@
           >
             <Ticket class="w-4 h-4 mr-2" />
             Concerts
+          </Button>
+          <Button
+            @click="activeTab = 'users'"
+            :variant="activeTab === 'users' ? 'default' : 'outline'"
+            size="sm"
+            class="flex-1"
+          >
+            <Users class="w-4 h-4 mr-2" />
+            Users
           </Button>
         </div>
       </div>
@@ -313,6 +339,113 @@
             </CardContent>
           </Card>
         </div>
+
+        <!-- Users Tab -->
+        <div v-if="activeTab === 'users'" v-motion-fade-up>
+          <Card class="bg-card/50 border-border/50">
+            <CardHeader>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle class="flex items-center gap-2">
+                    <Users class="w-5 h-5 text-blue-500" />
+                    Users
+                  </CardTitle>
+                  <CardDescription class="mt-1">
+                    {{ usersStore.users.length }} users registered
+                  </CardDescription>
+                </div>
+                <Button @click="openUserForm()" class="font-medium">
+                  <Plus class="w-4 h-4 mr-2" />
+                  Add User
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <!-- Loading State -->
+              <div v-if="usersStore.loading" class="space-y-4">
+                <div v-for="i in 5" :key="i" class="flex items-center gap-4 p-4 rounded-lg bg-background/50">
+                  <Skeleton class="w-10 h-10 rounded-full" />
+                  <div class="flex-1 space-y-2">
+                    <Skeleton class="h-4 w-1/3" />
+                    <Skeleton class="h-3 w-1/4" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table -->
+              <div v-else class="rounded-lg border border-border/50 overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow class="bg-muted/30 hover:bg-muted/30">
+                      <TableHead>User</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead class="text-center">Role</TableHead>
+                      <TableHead class="text-center">Provider</TableHead>
+                      <TableHead class="text-center">Following</TableHead>
+                      <TableHead class="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow
+                      v-for="user in usersStore.users"
+                      :key="user.id"
+                      class="hover:bg-accent/50 transition-colors"
+                    >
+                      <TableCell>
+                        <div class="flex items-center gap-3">
+                          <Avatar class="h-10 w-10 ring-2 ring-border/50">
+                            <AvatarFallback class="bg-blue-500/10 text-blue-500">
+                              {{ user.username.charAt(0).toUpperCase() }}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span class="font-medium">{{ user.username }}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span class="text-muted-foreground">{{ user.email }}</span>
+                      </TableCell>
+                      <TableCell class="text-center">
+                        <Badge v-if="user.admin" variant="default" class="bg-amber-500/10 text-amber-400 border-amber-500/20">
+                          <Shield class="w-3 h-3 mr-1" />
+                          Admin
+                        </Badge>
+                        <Badge v-else variant="secondary">
+                          User
+                        </Badge>
+                      </TableCell>
+                      <TableCell class="text-center">
+                        <span class="text-sm">{{ user.provider || 'Email' }}</span>
+                      </TableCell>
+                      <TableCell class="text-center">
+                        <span class="font-medium">{{ user.followed_artists_count || 0 }}</span>
+                      </TableCell>
+                      <TableCell class="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger as-child>
+                            <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
+                              <MoreHorizontal class="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" class="w-40">
+                            <DropdownMenuItem @click="openUserForm(user)" class="cursor-pointer">
+                              <Pencil class="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem @click="confirmDeleteUser(user)" class="cursor-pointer text-destructive focus:text-destructive">
+                              <Trash2 class="w-4 h-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </main>
 
@@ -333,6 +466,14 @@
       @saved="onConcertSaved"
     />
 
+    <!-- User Form Dialog -->
+    <UserForm
+      v-if="showUserForm"
+      :user="editingUser"
+      @close="closeUserForm"
+      @saved="onUserSaved"
+    />
+
     <!-- Delete Confirmation Dialog -->
     <AlertDialog :open="!!itemToDelete" @update:open="(open) => !open && (itemToDelete = null)">
       <AlertDialogContent class="bg-card/95 backdrop-blur-sm border-border/50">
@@ -343,7 +484,7 @@
           </AlertDialogTitle>
           <AlertDialogDescription>
             This action cannot be undone. This will permanently delete
-            <span class="font-semibold text-foreground">{{ itemToDelete?.name || itemToDelete?.title }}</span>.
+            <span class="font-semibold text-foreground">{{ itemToDelete?.name || itemToDelete?.title || itemToDelete?.username }}</span>.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -362,6 +503,7 @@
 import { ref, onMounted } from 'vue'
 import { useArtistsStore } from '../stores/artists'
 import { useConcertsStore } from '../stores/concerts'
+import { useUsersStore } from '../stores/users'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -394,6 +536,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import ArtistForm from '../components/artists/ArtistForm.vue'
 import ConcertForm from '../components/concerts/ConcertForm.vue'
+import UserForm from '../components/users/UserForm.vue'
 import {
   Shield,
   Users,
@@ -409,31 +552,28 @@ import {
   BadgeCheck
 } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
+import { formatDate as formatDateUtil, formatTime as formatTimeUtil } from '@/lib/utils'
 
 const artistsStore = useArtistsStore()
 const concertsStore = useConcertsStore()
+const usersStore = useUsersStore()
 
 const activeTab = ref('artists')
 const showArtistForm = ref(false)
 const showConcertForm = ref(false)
+const showUserForm = ref(false)
 const editingArtist = ref<any>(null)
 const editingConcert = ref<any>(null)
+const editingUser = ref<any>(null)
 const itemToDelete = ref<any>(null)
-const deleteType = ref<'artist' | 'concert' | null>(null)
+const deleteType = ref<'artist' | 'concert' | 'user' | null>(null)
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  })
+  return formatDateUtil(dateString)
 }
 
 function formatTime(dateString: string): string {
-  return new Date(dateString).toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  return formatTimeUtil(dateString)
 }
 
 function openArtistForm(artist: any = null) {
@@ -488,6 +628,9 @@ async function executeDelete() {
     } else if (deleteType.value === 'concert') {
       await concertsStore.deleteConcert(itemToDelete.value.id)
       toast.success('Concert deleted')
+    } else if (deleteType.value === 'user') {
+      await usersStore.deleteUser(itemToDelete.value.id)
+      toast.success('User deleted')
     }
   } catch (error) {
     console.error('Delete failed:', error)
@@ -496,6 +639,27 @@ async function executeDelete() {
     itemToDelete.value = null
     deleteType.value = null
   }
+}
+
+function openUserForm(user: any = null) {
+  editingUser.value = user
+  showUserForm.value = true
+}
+
+function closeUserForm() {
+  showUserForm.value = false
+  editingUser.value = null
+}
+
+function onUserSaved() {
+  closeUserForm()
+  usersStore.fetchUsers()
+  toast.success('User saved successfully')
+}
+
+function confirmDeleteUser(user: any) {
+  itemToDelete.value = user
+  deleteType.value = 'user'
 }
 
 async function handleFetchEvents(artist: any) {
@@ -526,7 +690,8 @@ async function handleFetchEvents(artist: any) {
 onMounted(async () => {
   await Promise.all([
     artistsStore.fetchArtists(),
-    concertsStore.fetchUpcomingConcerts()
+    concertsStore.fetchUpcomingConcerts(),
+    usersStore.fetchUsers()
   ])
 })
 </script>

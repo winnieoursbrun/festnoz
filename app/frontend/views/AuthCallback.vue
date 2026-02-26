@@ -31,10 +31,8 @@
           <h2 class="text-2xl font-bold">Authentication Failed</h2>
           <p class="text-muted-foreground">{{ errorMessage }}</p>
         </div>
-        <Button as-child>
-          <router-link to="/login">
-            Back to Login
-          </router-link>
+        <Button @click="goToLogin">
+          Back to Login
         </Button>
       </div>
     </div>
@@ -99,5 +97,10 @@ function getErrorMessage(errorCode: string): string {
   }
 
   return errorMessages[errorCode] || 'An unknown error occurred. Please try again.'
+}
+
+function goToLogin() {
+  const backendUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000'
+  globalThis.location.href = `${backendUrl}/api/auth/login`
 }
 </script>

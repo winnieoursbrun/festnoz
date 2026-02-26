@@ -5,6 +5,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import L from 'leaflet'
+import { formatDate } from '@/lib/utils'
 
 const props = defineProps({
   center: {
@@ -202,7 +203,8 @@ function updateMarkers() {
     })
 
     const marker = L.marker([concert.latitude, concert.longitude], {
-      icon: concertIcon
+      icon: concertIcon,
+      title: `${concert.title} - ${formatDate(concert.starts_at)}`
     }).addTo(map)
 
     // Create popup content
@@ -218,7 +220,7 @@ function updateMarkers() {
           📍 ${escapeHtml(concert.venue_name)}
         </p>
         <p style="margin: 0 0 8px 0; font-size: 12px; color: #9ca3af;">
-          📅 ${new Date(concert.starts_at).toLocaleDateString()}
+          📅 ${formatDate(concert.starts_at)}
         </p>
         ${concert.distance ? `<p style="margin: 0 0 8px 0; font-size: 12px; color: #9ca3af;">🗺️ ${Math.round(concert.distance * 10) / 10} km away</p>` : ''}
         <button

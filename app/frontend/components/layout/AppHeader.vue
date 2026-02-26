@@ -184,6 +184,8 @@ onUnmounted(() => {
 
 async function handleLogout() {
   await authStore.logout()
-  router.push('/login')
+  // Redirect to Rails Devise login page
+  const backendUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000'
+  globalThis.location.href = `${backendUrl}/api/auth/login`
 }
 </script>

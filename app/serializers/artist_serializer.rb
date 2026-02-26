@@ -22,7 +22,7 @@ class ArtistSerializer
   end
 
   attribute :upcoming_concerts_count do |artist|
-    artist.upcoming_concerts.count
+    artist.upcoming_concerts.size
   end
 
   attribute :on_tour do |artist|

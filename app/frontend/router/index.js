@@ -9,18 +9,6 @@ const routes = [
     meta: { requiresGuest: true }
   },
   {
-    path: '/login',
-    name: 'Login',
-    component: () => import('../views/Login.vue'),
-    meta: { requiresGuest: true }
-  },
-  {
-    path: '/signup',
-    name: 'Signup',
-    component: () => import('../views/Signup.vue'),
-    meta: { requiresGuest: true }
-  },
-  {
     path: '/auth/callback',
     name: 'AuthCallback',
     component: () => import('../views/AuthCallback.vue')
@@ -80,7 +68,9 @@ router.beforeEach((to, from, next) => {
   const isAdmin = authStore.user?.admin
 
   if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'Login' })
+    // Redirect to Rails Devise login page
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000'
+    globalThis.location.href = `${backendUrl}/api/auth/login`
   } else if (to.meta.requiresGuest && isAuthenticated) {
     next({ name: 'Dashboard' })
   } else if (to.meta.requiresAdmin && !isAdmin) {

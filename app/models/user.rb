@@ -22,6 +22,17 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true, if: -> { provider.blank? }
   validates :password, presence: true, if: -> { provider.blank? && !password.nil? }
 
+  # Callbacks
+  before_create :set_jti
+
+  private
+
+  def set_jti
+    self.jti ||= SecureRandom.uuid
+  end
+
+  public
+
   # Class methods
   def self.from_omniauth(auth)
     user = where(provider: auth.provider, uid: auth.uid).first_or_initialize do |u|
