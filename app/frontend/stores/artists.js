@@ -75,7 +75,6 @@ export const useArtistsStore = defineStore('artists', () => {
   }
 
   async function followArtist(artistId) {
-    loading.value = true
     error.value = null
     try {
       const response = await api.post('/api/v1/user/followed_artists', {
@@ -95,13 +94,10 @@ export const useArtistsStore = defineStore('artists', () => {
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to follow artist'
       throw err
-    } finally {
-      loading.value = false
     }
   }
 
   async function unfollowArtist(artistId) {
-    loading.value = true
     error.value = null
     try {
       await api.delete(`/api/v1/user/followed_artists/${artistId}`)
@@ -113,8 +109,6 @@ export const useArtistsStore = defineStore('artists', () => {
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to unfollow artist'
       throw err
-    } finally {
-      loading.value = false
     }
   }
 
@@ -260,6 +254,20 @@ export const useArtistsStore = defineStore('artists', () => {
     }
   }
 
+  async function fetchAllArtistEvents() {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.post('/api/v1/artists/fetch_all_events')
+      return response.data
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to enqueue event fetching'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     artists,
     followedArtists,
@@ -285,6 +293,7 @@ export const useArtistsStore = defineStore('artists', () => {
     fetchSuggestedArtists,
     syncTopArtistsFromSpotify,
     removeSuggestedArtist,
-    fetchEventsForArtist
+    fetchEventsForArtist,
+    fetchAllArtistEvents
   }
 })

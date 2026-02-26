@@ -4,7 +4,7 @@ module Api
   module V1
     class ArtistsController < BaseController
       skip_before_action :authenticate_user!, only: [:index, :show, :concerts]
-      before_action :require_admin, only: [:create, :update, :destroy, :enrich, :fetch_events]
+      before_action :require_admin, only: [:create, :update, :destroy, :enrich, :fetch_events, :fetch_all_events]
       before_action :set_artist, only: [:show, :update, :destroy, :concerts, :enrich, :fetch_events]
 
       # GET /api/v1/artists
@@ -48,6 +48,17 @@ module Api
             artist: ArtistSerializer.new(@artist).serializable_hash[:data][:attributes]
           }, status: :ok
         end
+      end
+
+      # POST /api/v1/artists/fetch_all_events
+      def fetch_all_events
+        artist_ids = Artist.pluck(:id)
+        artist_ids.each { |id| FetchArtistEventsJob.perform_later(id) }
+
+        render json: {
+          message: "Enqueued event fetching for #{artist_ids.size} artists",
+          count: artist_ids.size
+        }, status: :ok
       end
 
       # POST /api/v1/artists/:id/fetch_events

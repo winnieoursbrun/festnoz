@@ -44,6 +44,9 @@ Rails.application.routes.draw do
 
       # Artists
       resources :artists, only: [ :index, :show, :create, :update, :destroy ] do
+        collection do
+          post :fetch_all_events
+        end
         member do
           get :concerts
           post :enrich

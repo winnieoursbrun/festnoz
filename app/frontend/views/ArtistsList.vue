@@ -6,7 +6,9 @@
       <div class="absolute bottom-1/4 left-0 w-[500px] h-[500px] gradient-glow opacity-20" />
     </div>
 
-    <div class="container mx-auto px-4 lg:px-8 py-8 lg:py-12">
+    <div class="py-8 lg:py-12">
+      <!-- Constrained header + filters section -->
+      <div class="container mx-auto px-4 lg:px-8">
       <!-- Header -->
       <div class="mb-10" v-motion-fade-up>
         <div class="flex items-center gap-3 mb-2">
@@ -119,6 +121,11 @@
         </CardContent>
       </Card>
 
+      </div><!-- end constrained section -->
+
+      <!-- Full-width section -->
+      <div class="px-4 lg:px-8 xl:px-12">
+
       <!-- Results Count -->
       <div
         class="flex items-center justify-between mb-6"
@@ -126,14 +133,14 @@
         :initial="{ opacity: 0, y: 20 }"
         :enter="{ opacity: 1, y: 0, transition: { delay: 200 } }"
       >
-        <p class="text-muted-foreground flex items-center gap-2">
-          <span class="text-2xl font-bold text-foreground">{{ artistsStore.artists.length }}</span>
-          artists found
+        <p class="text-xs text-muted-foreground/60 flex items-center gap-1.5">
+          <Sparkles class="w-3.5 h-3.5" />
+          Sorted by your preferences
         </p>
       </div>
 
       <!-- Loading State with Skeletons -->
-      <div v-if="artistsStore.loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+      <div v-if="artistsStore.loading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4">
         <Card v-for="i in 8" :key="i" class="bg-card/50 border-border/50">
           <div class="h-40 skeleton-shimmer rounded-t-lg" />
           <CardContent class="pt-4 space-y-3">
@@ -171,9 +178,9 @@
       </Card>
 
       <!-- Artists Grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4">
         <div
-          v-for="(artist, index) in artistsStore.artists"
+          v-for="(artist, index) in sortedArtists"
           :key="artist.id"
           v-motion
           :initial="{ opacity: 0, y: 20 }"
@@ -182,6 +189,8 @@
           <ArtistCard :artist="artist" />
         </div>
       </div>
+
+      </div><!-- end full-width section -->
     </div>
   </div>
 </template>
@@ -219,6 +228,25 @@ const authStore = useAuthStore()
 
 const searchQuery = ref('')
 const selectedGenre = ref('all')
+
+// Frozen sort order — computed once after load, not reactive to follow changes
+const sortedArtists = ref<any[]>([])
+
+function applySortOrder() {
+  sortedArtists.value = [...artistsStore.artists].sort((a, b) => {
+    const score = (artist: any) => {
+      let s = 0
+      if (artistsStore.isFollowing(artist.id)) s += 1000
+      if (artist.on_tour) s += 500
+      if (artist.is_enriched) s += 200
+      s += (artist.upcoming_concerts_count || 0) * 10
+      s += Math.min(artist.followers_count || 0, 100)
+      return s
+    }
+    return score(b) - score(a)
+  })
+}
+
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 function debouncedSearch() {
@@ -253,9 +281,15 @@ async function fetchArtists() {
   if (searchQuery.value) filters.search = searchQuery.value
   if (selectedGenre.value && selectedGenre.value !== 'all') filters.genre = selectedGenre.value
   await artistsStore.fetchArtists(filters)
+  applySortOrder()
 }
 
 onMounted(async () => {
-  await fetchArtists()
+  // Fetch artists + followed status in parallel, then sort once both are ready
+  await Promise.all([
+    artistsStore.fetchArtists({}),
+    authStore.user ? artistsStore.fetchFollowedArtists() : Promise.resolve()
+  ])
+  applySortOrder()
 })
 </script>

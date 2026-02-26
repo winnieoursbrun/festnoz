@@ -137,10 +137,33 @@
                     {{ artistsStore.artists.length }} artists registered
                   </CardDescription>
                 </div>
-                <Button @click="openArtistForm()" class="font-medium">
-                  <Plus class="w-4 h-4 mr-2" />
-                  Add Artist
-                </Button>
+                <div class="flex flex-col gap-2 items-end">
+                  <div class="flex gap-2">
+                    <Button @click="handleFetchAllEvents" variant="outline" class="font-medium" :disabled="fetchingAllEvents">
+                      <Calendar class="w-4 h-4 mr-2" />
+                      {{ fetchingAllEvents ? 'Enqueueing...' : 'Fetch All Events' }}
+                    </Button>
+                    <Button @click="openArtistForm()" class="font-medium">
+                      <Plus class="w-4 h-4 mr-2" />
+                      Add Artist
+                    </Button>
+                  </div>
+                  <Transition
+                    enter-active-class="transition-all duration-300"
+                    enter-from-class="opacity-0 scale-y-0"
+                    enter-to-class="opacity-100 scale-y-100"
+                    leave-active-class="transition-all duration-300"
+                    leave-from-class="opacity-100 scale-y-100"
+                    leave-to-class="opacity-0 scale-y-0"
+                  >
+                    <div v-if="fetchProgress > 0" class="w-full min-w-48 origin-top">
+                      <Progress :model-value="fetchProgress" class="h-1.5" />
+                      <p class="text-xs text-muted-foreground mt-1 text-right">
+                        {{ fetchProgress < 100 ? 'Enqueueing jobs…' : 'Jobs enqueued!' }}
+                      </p>
+                    </div>
+                  </Transition>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -500,7 +523,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useArtistsStore } from '../stores/artists'
 import { useConcertsStore } from '../stores/concerts'
 import { useUsersStore } from '../stores/users'
@@ -509,6 +532,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Progress } from '@/components/ui/progress'
 import {
   Table,
   TableBody,
@@ -567,6 +591,13 @@ const editingConcert = ref<any>(null)
 const editingUser = ref<any>(null)
 const itemToDelete = ref<any>(null)
 const deleteType = ref<'artist' | 'concert' | 'user' | null>(null)
+const fetchingAllEvents = ref(false)
+const fetchProgress = ref(0)
+let progressInterval: ReturnType<typeof setInterval> | null = null
+
+onUnmounted(() => {
+  if (progressInterval) clearInterval(progressInterval)
+})
 
 function formatDate(dateString: string): string {
   return formatDateUtil(dateString)
@@ -660,6 +691,36 @@ function onUserSaved() {
 function confirmDeleteUser(user: any) {
   itemToDelete.value = user
   deleteType.value = 'user'
+}
+
+async function handleFetchAllEvents() {
+  fetchingAllEvents.value = true
+  fetchProgress.value = 0
+
+  // Animate progress bar: fast to 70%, then slow until response
+  progressInterval = setInterval(() => {
+    if (fetchProgress.value < 70) {
+      fetchProgress.value = Math.min(fetchProgress.value + 5, 70)
+    } else if (fetchProgress.value < 90) {
+      fetchProgress.value = Math.min(fetchProgress.value + 1, 90)
+    }
+  }, 80)
+
+  try {
+    const result = await artistsStore.fetchAllArtistEvents()
+    if (progressInterval) clearInterval(progressInterval)
+    fetchProgress.value = 100
+    toast.success(`Enqueued event fetching for ${result.count} artists`)
+    setTimeout(() => { fetchProgress.value = 0 }, 1500)
+  } catch (error) {
+    if (progressInterval) clearInterval(progressInterval)
+    fetchProgress.value = 0
+    console.error('Failed to enqueue event fetching:', error)
+    toast.error('Failed to enqueue event fetching')
+  } finally {
+    fetchingAllEvents.value = false
+    progressInterval = null
+  }
 }
 
 async function handleFetchEvents(artist: any) {

@@ -54,8 +54,9 @@ module Api
         radius = params[:radius].present? ? params[:radius].to_f : 50
 
         @concerts = Concert.near([lat, lng], radius, units: :km)
-                           .where("starts_at >= ?", Time.current)
-                           .order("distance ASC")
+                            .includes(:artist)
+                            .where("starts_at >= ?", Time.current)
+                            .order("distance ASC")
 
         render json: {
           concerts: @concerts.map do |concert|
