@@ -100,7 +100,7 @@ function getErrorMessage(errorCode: string): string {
 }
 
 function goToLogin() {
-  const backendUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000'
+  const backendUrl = import.meta.env.BASE_URL || 'http://127.0.0.1:3000'
   globalThis.location.href = `${backendUrl}/api/auth/login`
 }
 </script>

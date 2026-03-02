@@ -39,7 +39,7 @@ onMounted(async () => {
 
     if (!token) {
       console.error('No token received')
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000'
+      const backendUrl = import.meta.env.BASE_URL || 'http://127.0.0.1:3000'
       globalThis.location.href = `${backendUrl}/api/auth/login`
       return
     }
@@ -59,7 +59,7 @@ onMounted(async () => {
     }, 1000)
   } catch (error) {
     console.error('Auth success error:', error)
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000'
+    const backendUrl = import.meta.env.BASE_URL || 'http://127.0.0.1:3000'
     globalThis.location.href = `${backendUrl}/api/auth/login`
   }
 })
