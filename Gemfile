@@ -71,3 +71,7 @@ group :development do
 end
 
 gem "psych", "< 5.3" # Have a segfault with 5.3 and Rails 8.1
+
+gem "stackprof"
+gem "sentry-ruby"
+gem "sentry-rails"

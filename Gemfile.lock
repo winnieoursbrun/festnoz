@@ -375,6 +375,13 @@ GEM
       ffi (~> 1.12)
       logger
     securerandom (0.4.1)
+    sentry-rails (6.4.1)
+      railties (>= 5.2.0)
+      sentry-ruby (~> 6.4.1)
+    sentry-ruby (6.4.1)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      logger
     snaky_hash (2.0.3)
       hashie (>= 0.1.0, < 6)
       version_gem (>= 1.1.8, < 3)
@@ -401,6 +408,7 @@ GEM
       net-sftp (>= 2.1.2)
       net-ssh (>= 2.8.0)
       ostruct
+    stackprof (0.2.28)
     stringio (3.2.0)
     thor (1.5.0)
     thruster (0.1.18)
@@ -476,9 +484,12 @@ DEPENDENCIES
   rack-cors
   rails (~> 8.1.1)
   rubocop-rails-omakase
+  sentry-rails
+  sentry-ruby
   solid_cable
   solid_cache
   solid_queue
+  stackprof
   thruster
   tzinfo-data
   vite_rails
