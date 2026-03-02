@@ -32,7 +32,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const isAuthPage = computed(() => {
-  return ['Login', 'Signup', 'Welcome'].includes(route.name as string)
+  return ['Login', 'Signup', 'Welcome', 'AccountDeletionConfirm'].includes(route.name as string)
 })
 
 onMounted(async () => {

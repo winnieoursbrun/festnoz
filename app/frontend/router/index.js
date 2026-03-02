@@ -49,6 +49,17 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/settings',
+    name: 'AccountSettings',
+    component: () => import('../views/AccountSettings.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/account/delete/confirm',
+    name: 'AccountDeletionConfirm',
+    component: () => import('../views/AccountDeletionConfirm.vue')
+  },
+  {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/AdminPanel/index.vue'),

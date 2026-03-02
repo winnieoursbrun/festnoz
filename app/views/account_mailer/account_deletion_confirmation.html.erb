@@ -1,0 +1,13 @@
+<p>Hello <%= @user.username %>,</p>
+
+<p>We received a request to permanently delete your FestNoz account.</p>
+
+<p>This action cannot be undone. If you want to continue, confirm using this link:</p>
+
+<p>
+  <a href="<%= @confirmation_url %>">Confirm account deletion</a>
+</p>
+
+<p>This link expires in 24 hours.</p>
+
+<p>If you did not request this, you can ignore this email.</p>

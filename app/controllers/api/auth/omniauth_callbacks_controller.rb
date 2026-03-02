@@ -7,6 +7,7 @@ module Api
 
       def spotify
         auth = request.env["omniauth.auth"]
+        redirect_path = request.env["omniauth.origin"]
 
         # Find or create user from OAuth data
         @user = User.from_omniauth(auth)
@@ -16,7 +17,7 @@ module Api
           token = generate_jwt_token(@user)
 
           # Redirect to frontend with token
-          redirect_to frontend_callback_url(token: token, provider: "spotify"), allow_other_host: true
+          redirect_to frontend_callback_url(token: token, provider: "spotify", redirect: redirect_path), allow_other_host: true
         else
           # Redirect to frontend with error
           redirect_to frontend_callback_url(error: "authentication_failed"), allow_other_host: true

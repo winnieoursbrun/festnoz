@@ -42,6 +42,16 @@ Rails.application.routes.draw do
       # Current user endpoint
       get "auth/me", to: "auth#show"
 
+      # Account settings (self-service)
+      namespace :account do
+        get "settings", to: "settings#show"
+        patch "settings/profile", to: "settings#update_profile"
+        patch "settings/password", to: "settings#update_password"
+        delete "settings/music_accounts/:provider", to: "settings#disconnect_music_account"
+        post "deletion/request", to: "settings#request_account_deletion"
+        post "deletion/confirm", to: "deletion_confirmations#create"
+      end
+
       # Artists
       resources :artists, only: [ :index, :show, :create, :update, :destroy ] do
         collection do

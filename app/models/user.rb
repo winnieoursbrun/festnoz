@@ -3,6 +3,8 @@
 class User < ApplicationRecord
   include Devise::JWT::RevocationStrategies::Denylist
 
+  ACCOUNT_DELETION_TOKEN_TTL = 24.hours
+
   # Devise modules
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
@@ -73,5 +75,44 @@ class User < ApplicationRecord
       spotify_refresh_token: refresh_token,
       spotify_token_expires_at: Time.at(expires_at)
     )
+  end
+
+  def generate_account_deletion_token!
+    raw_token = SecureRandom.urlsafe_base64(48)
+    update!(
+      account_deletion_token_digest: self.class.account_deletion_token_digest(raw_token),
+      account_deletion_requested_at: Time.current
+    )
+    raw_token
+  end
+
+  def clear_account_deletion_token!
+    update!(account_deletion_token_digest: nil, account_deletion_requested_at: nil)
+  end
+
+  def account_deletion_token_valid?(raw_token)
+    return false if raw_token.blank? || account_deletion_token_digest.blank? || account_deletion_requested_at.blank?
+    return false if account_deletion_requested_at < ACCOUNT_DELETION_TOKEN_TTL.ago
+
+    ActiveSupport::SecurityUtils.secure_compare(
+      account_deletion_token_digest,
+      self.class.account_deletion_token_digest(raw_token)
+    )
+  rescue ArgumentError
+    false
+  end
+
+  def self.find_by_valid_account_deletion_token(raw_token)
+    return nil if raw_token.blank?
+
+    digest = account_deletion_token_digest(raw_token)
+    user = find_by(account_deletion_token_digest: digest)
+    return nil unless user&.account_deletion_token_valid?(raw_token)
+
+    user
+  end
+
+  def self.account_deletion_token_digest(raw_token)
+    Digest::SHA256.hexdigest(raw_token)
   end
 end

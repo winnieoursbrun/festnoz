@@ -50,9 +50,12 @@ onMounted(async () => {
     // Fetch user data
     await authStore.fetchCurrentUser()
 
+    const requestedRedirect = (route.query.redirect as string) || '/dashboard'
+    const redirectTo = requestedRedirect.startsWith('/') ? requestedRedirect : '/dashboard'
+
     // Redirect to dashboard
     setTimeout(() => {
-      router.push('/dashboard')
+      router.push(redirectTo)
     }, 1000)
   } catch (error) {
     console.error('Auth success error:', error)

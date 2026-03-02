@@ -56,6 +56,11 @@
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem @click="goToSettings" class="cursor-pointer">
+                <Settings class="w-4 h-4 mr-2" />
+                Account settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem @click="handleLogout" class="text-destructive focus:text-destructive cursor-pointer">
                 <LogOut class="w-4 h-4 mr-2" />
                 Logout
@@ -137,6 +142,7 @@ import {
   Users,
   Map,
   Shield,
+  Settings,
   LogOut,
   Menu,
   ChevronDown,
@@ -187,5 +193,9 @@ async function handleLogout() {
   // Redirect to Rails Devise login page
   const backendUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:3000'
   globalThis.location.href = `${backendUrl}/api/auth/login`
+}
+
+function goToSettings() {
+  router.push('/settings')
 }
 </script>
