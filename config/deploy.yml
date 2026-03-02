@@ -58,7 +58,6 @@ env:
     # Log everything from Rails
     # RAILS_LOG_LEVEL: debug
 
-    VITE_API_URL: "https://www.festnoz.link"
     URL: "https://www.festnoz.link"
 
 # Aliases are triggered with "bin/kamal <alias>". You can overwrite arguments on invocation:
