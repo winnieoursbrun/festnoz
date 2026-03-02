@@ -89,34 +89,23 @@ app.use(MotionPlugin, {
 // Initialize Sentry for error tracking and performance monitoring
 Sentry.init({
   app,
-  dsn: "http://examplePublicKey@sentry.festnoz.link/0",
-  // Adds request headers and IP for users, for more info visit:
-  // https://docs.sentry.io/platforms/javascript/guides/vue/configuration/options/#sendDefaultPii
+  dsn: "https://91d774a6c3e7b1bc7f9b0de01bf8e325@o4510976802357248.ingest.de.sentry.io/4510976822280272",
+  // Setting this option to true will send default PII data to Sentry.
+  // For example, automatic IP address collection on events
   sendDefaultPii: true,
   integrations: [
     Sentry.browserTracingIntegration({ router }),
-    Sentry.replayIntegration(),
-    Sentry.feedbackIntegration({
-      // Additional SDK configuration goes in here, for example:
-      colorScheme: "system",
-    }),
+    Sentry.replayIntegration()
   ],
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for tracing.
-  // We recommend adjusting this value in production
-  // Learn more at
-  // https://docs.sentry.io/platforms/javascript/configuration/options/#traces-sample-rate
-  tracesSampleRate: 1.0,
-  // Set `tracePropagationTargets` to control for which URLs trace propagation should be enabled
+  // Tracing
+  tracesSampleRate: 1.0, // Capture 100% of the transactions
+  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
   tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
-  // Capture Replay for 10% of all sessions,
-  // plus for 100% of sessions with an error
-  // Learn more at
-  // https://docs.sentry.io/platforms/javascript/session-replay/configuration/#general-integration-configuration
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  // Session Replay
+  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
+  replaysOnErrorSampleRate: 1.0 // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.,
+  // Logs
+  enableLogs: true
 });
 pinia.use(createSentryPiniaPlugin()); // Automatically capture Pinia state and actions in Sentry
 
