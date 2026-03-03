@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { backendUrl } from '@/config'
 
 const routes = [
   {
@@ -80,7 +81,6 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     // Redirect to Rails Devise login page
-    const backendUrl = import.meta.env.BASE_URL || 'http://127.0.0.1:3000'
     globalThis.location.href = `${backendUrl}/api/auth/login`
   } else if (to.meta.requiresGuest && isAuthenticated) {
     next({ name: 'Dashboard' })

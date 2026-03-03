@@ -92,6 +92,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import { backendUrl } from '@/config'
 import api from '../services/api'
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
@@ -197,7 +198,6 @@ async function updatePassword() {
 }
 
 function connectSpotify() {
-  const backendUrl = import.meta.env.BASE_URL || 'http://127.0.0.1:3000'
   globalThis.location.href = `${backendUrl}/api/auth/spotify?origin=/settings`
 }
 

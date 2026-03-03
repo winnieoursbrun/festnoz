@@ -45,6 +45,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { Button } from '@/components/ui/button'
 import { Music, AlertCircle } from 'lucide-vue-next'
+import { backendUrl } from '@/config'
 
 const router = useRouter()
 const route = useRoute()
@@ -100,7 +101,6 @@ function getErrorMessage(errorCode: string): string {
 }
 
 function goToLogin() {
-  const backendUrl = import.meta.env.BASE_URL || 'http://127.0.0.1:3000'
   globalThis.location.href = `${backendUrl}/api/auth/login`
 }
 </script>

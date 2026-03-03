@@ -75,7 +75,7 @@ describe('API Service', () => {
       await import('../api')
 
       expect(axios.create).toHaveBeenCalledWith({
-        baseURL: 'http://127.0.0.1:3000',
+        baseURL: '/',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -225,7 +225,7 @@ describe('API Service', () => {
       expect(createCall).toHaveProperty('withCredentials', true)
     })
 
-    it('defaults to 127.0.0.1:3000 when VITE_API_URL not set', async () => {
+    it('defaults to / when VITE_API_URL not set', async () => {
       const originalEnv = import.meta.env
       Object.defineProperty(import.meta, 'env', {
         value: {},
@@ -237,7 +237,7 @@ describe('API Service', () => {
 
       expect(axios.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          baseURL: 'http://127.0.0.1:3000',
+          baseURL: '/',
         })
       )
 

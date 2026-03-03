@@ -118,6 +118,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import { backendUrl } from '@/config'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
@@ -191,7 +192,6 @@ onUnmounted(() => {
 async function handleLogout() {
   await authStore.logout()
   // Redirect to Rails Devise login page
-  const backendUrl = import.meta.env.BASE_URL || 'http://127.0.0.1:3000'
   globalThis.location.href = `${backendUrl}/api/auth/login`
 }
 

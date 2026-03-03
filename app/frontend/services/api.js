@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { backendUrl } from '@/config'
 
 const api = axios.create({
-  baseURL: import.meta.env.BASE_URL || 'http://127.0.0.1:3000',
+  baseURL: backendUrl,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
