@@ -156,7 +156,7 @@
 
       <!-- Empty State -->
       <Card
-        v-else-if="artistsStore.artists.length === 0"
+        v-else-if="artistsStore.artists.length === 0 && spotifyResults.length === 0"
         class="border-dashed border-border/50 bg-card/30"
         v-motion
         :initial="{ opacity: 0, y: 20 }"
@@ -178,7 +178,7 @@
       </Card>
 
       <!-- Artists Grid -->
-      <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4">
+      <div v-else-if="sortedArtists.length > 0 || spotifyResults.length > 0" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 lg:gap-4">
         <div
           v-for="(artist, index) in sortedArtists"
           :key="artist.id"
@@ -187,6 +187,16 @@
           :enter="{ opacity: 1, y: 0, transition: { delay: 100 + index * 30 } }"
         >
           <ArtistCard :artist="artist" />
+        </div>
+        <!-- Spotify ghost cards (admin + search active) -->
+        <div
+          v-for="(artist, index) in spotifyResults"
+          :key="'spotify-' + artist.spotify_id"
+          v-motion
+          :initial="{ opacity: 0, y: 20 }"
+          :enter="{ opacity: 1, y: 0, transition: { delay: 100 + (sortedArtists.length + index) * 30 } }"
+        >
+          <SpotifyArtistCard :artist="artist" @imported="handleArtistImported" />
         </div>
       </div>
 
@@ -212,6 +222,8 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import ArtistCard from '../components/artists/ArtistCard.vue'
+import SpotifyArtistCard from '../components/artists/SpotifyArtistCard.vue'
+import api from '@/services/api'
 import {
   Users,
   Search,
@@ -231,6 +243,8 @@ const selectedGenre = ref('all')
 
 // Frozen sort order — computed once after load, not reactive to follow changes
 const sortedArtists = ref<any[]>([])
+const spotifyResults = ref<any[]>([])
+let spotifySearchTimeout: ReturnType<typeof setTimeout> | null = null
 
 function applySortOrder() {
   sortedArtists.value = [...artistsStore.artists].sort((a, b) => {
@@ -254,6 +268,29 @@ function debouncedSearch() {
   searchTimeout = setTimeout(() => {
     fetchArtists()
   }, 300)
+  // Admin: also search Spotify in parallel
+  if (authStore.user?.admin) {
+    if (spotifySearchTimeout) clearTimeout(spotifySearchTimeout)
+    if (!searchQuery.value.trim()) {
+      spotifyResults.value = []
+      return
+    }
+    spotifySearchTimeout = setTimeout(fetchSpotifyResults, 400)
+  }
+}
+
+async function fetchSpotifyResults() {
+  if (!searchQuery.value.trim()) {
+    spotifyResults.value = []
+    return
+  }
+  try {
+    const resp = await api.get('/api/v1/artists/search_spotify', { params: { q: searchQuery.value.trim() } })
+    // Only show artists not already in our DB
+    spotifyResults.value = (resp.data.artists || []).filter((a: any) => !a.already_imported)
+  } catch {
+    spotifyResults.value = []
+  }
 }
 
 function handleFilter() {
@@ -262,6 +299,7 @@ function handleFilter() {
 
 function clearSearch() {
   searchQuery.value = ''
+  spotifyResults.value = []
   fetchArtists()
 }
 
@@ -273,6 +311,7 @@ function clearGenre() {
 function clearFilters() {
   searchQuery.value = ''
   selectedGenre.value = 'all'
+  spotifyResults.value = []
   fetchArtists()
 }
 
@@ -282,6 +321,12 @@ async function fetchArtists() {
   if (selectedGenre.value && selectedGenre.value !== 'all') filters.genre = selectedGenre.value
   await artistsStore.fetchArtists(filters)
   applySortOrder()
+}
+
+async function handleArtistImported() {
+  // Refresh local artists and re-run spotify search to remove the newly imported one
+  await fetchArtists()
+  await fetchSpotifyResults()
 }
 
 onMounted(async () => {

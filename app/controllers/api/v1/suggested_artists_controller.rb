@@ -8,7 +8,6 @@ module Api
       # GET /api/v1/suggested_artists
       def index
         @suggested_artists = current_user.suggested_artists
-                                         .not_followed
                                          .includes(artist: [:user_artists, :concerts])
                                          .ordered
                                          .limit(50)
@@ -28,9 +27,7 @@ module Api
           limit: params[:limit] || 20
         )
 
-        # Filter out followed artists from the response
         @suggested_artists = current_user.suggested_artists
-                                  .not_followed
                                   .includes(artist: [:user_artists, :concerts])
                                   .ordered
                                   .limit(50)

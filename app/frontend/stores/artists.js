@@ -87,9 +87,6 @@ export const useArtistsStore = defineStore('artists', () => {
         followedArtists.value.push(artist)
       }
 
-      // Remove from suggested artists list if present
-      suggestedArtists.value = suggestedArtists.value.filter(sa => sa.artist.id !== artistId)
-
       return response.data
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to follow artist'

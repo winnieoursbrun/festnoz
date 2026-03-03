@@ -56,6 +56,8 @@ Rails.application.routes.draw do
       resources :artists, only: [ :index, :show, :create, :update, :destroy ] do
         collection do
           post :fetch_all_events
+          get  :search_spotify
+          post :import_from_spotify
         end
         member do
           get :concerts

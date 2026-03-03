@@ -8,8 +8,45 @@ class SpotifyService
   BASE_URL = "https://api.spotify.com/v1"
   TOKEN_URL = "https://accounts.spotify.com/api/token"
 
-  def initialize(user)
+  def initialize(user = nil)
     @user = user
+  end
+
+  # Search artists in Spotify catalog using client credentials (no user needed)
+  def self.search_artists(query, limit: 10)
+    new.search_artists(query, limit: limit)
+  end
+
+  def search_artists(query, limit: 10)
+    token = client_credentials_token
+    uri = URI("#{BASE_URL}/search")
+    uri.query = URI.encode_www_form(q: query, type: "artist", limit: limit)
+
+    request = Net::HTTP::Get.new(uri)
+    request["Authorization"] = "Bearer #{token}"
+
+    response = make_request(uri, request)
+    data = JSON.parse(response.body)
+    data.dig("artists", "items") || []
+  rescue StandardError => e
+    Rails.logger.error("Spotify search error: #{e.message}")
+    raise
+  end
+
+  # Import an artist from Spotify by their Spotify ID
+  def import_artist(spotify_id)
+    token = client_credentials_token
+    uri = URI("#{BASE_URL}/artists/#{spotify_id}")
+
+    request = Net::HTTP::Get.new(uri)
+    request["Authorization"] = "Bearer #{token}"
+
+    response = make_request(uri, request)
+    artist_data = JSON.parse(response.body)
+    find_or_create_artist(artist_data)
+  rescue StandardError => e
+    Rails.logger.error("Spotify import error: #{e.message}")
+    raise
   end
 
   # Fetch user's top artists from Spotify
@@ -140,5 +177,26 @@ class SpotifyService
     end
 
     response
+  end
+
+  # Get a client credentials token (app-level, no user needed)
+  def client_credentials_token
+    uri = URI(TOKEN_URL)
+    request = Net::HTTP::Post.new(uri)
+    request["Content-Type"] = "application/x-www-form-urlencoded"
+    request.basic_auth(
+      Rails.application.credentials.spotify_client_id,
+      Rails.application.credentials.spotify_client_secret
+    )
+    request.set_form_data(grant_type: "client_credentials")
+
+    response = make_request(uri, request)
+    token_data = JSON.parse(response.body)
+
+    unless token_data["access_token"]
+      raise "Failed to get Spotify client token: #{token_data["error"]}"
+    end
+
+    token_data["access_token"]
   end
 end

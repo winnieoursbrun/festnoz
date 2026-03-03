@@ -4,7 +4,7 @@ module Api
   module V1
     class ArtistsController < BaseController
       skip_before_action :authenticate_user!, only: [:index, :show, :concerts]
-      before_action :require_admin, only: [:create, :update, :destroy, :enrich, :fetch_events, :fetch_all_events]
+      before_action :require_admin, only: [:create, :update, :destroy, :enrich, :fetch_events, :fetch_all_events, :search_spotify, :import_from_spotify]
       before_action :set_artist, only: [:show, :update, :destroy, :concerts, :enrich, :fetch_events]
 
       # GET /api/v1/artists
@@ -50,6 +50,60 @@ module Api
           message: "Enqueued event fetching for #{artist_ids.size} artists",
           count: artist_ids.size
         }, status: :ok
+      end
+
+      # GET /api/v1/artists/search_spotify?q=query
+      def search_spotify
+        query = params[:q].to_s.strip
+        return render json: { error: "Query is required" }, status: :bad_request if query.blank?
+
+        results = SpotifyService.new.search_artists(query, limit: 10)
+        spotify_ids = results.map { |r| r["id"] }.compact
+        existing_ids = Artist.where(spotify_id: spotify_ids).pluck(:spotify_id).to_set
+
+        artists = results.map do |r|
+          {
+            spotify_id: r["id"],
+            name: r["name"],
+            genre: r["genres"]&.first,
+            genres: r["genres"],
+            image_url: r["images"]&.first&.dig("url"),
+            popularity: r["popularity"],
+            spotify_url: r["external_urls"]&.dig("spotify"),
+            followers: r.dig("followers", "total"),
+            already_imported: existing_ids.include?(r["id"])
+          }
+        end
+
+        render json: { artists: artists }, status: :ok
+      rescue StandardError => e
+        render json: { error: "Spotify search failed", message: e.message }, status: :service_unavailable
+      end
+
+      # POST /api/v1/artists/import_from_spotify
+      def import_from_spotify
+        spotify_id = params[:spotify_id].to_s.strip
+        return render json: { error: "spotify_id is required" }, status: :bad_request if spotify_id.blank?
+
+        existing = Artist.find_by(spotify_id: spotify_id)
+        if existing
+          return render json: {
+            message: "Artist already imported",
+            artist: { id: existing.id, name: existing.name, spotify_id: existing.spotify_id }
+          }, status: :ok
+        end
+
+        artist = SpotifyService.new.import_artist(spotify_id)
+        if artist&.persisted?
+          render json: {
+            message: "Artist imported successfully",
+            artist: { id: artist.id, name: artist.name, spotify_id: artist.spotify_id }
+          }, status: :created
+        else
+          render json: { error: "Failed to import artist" }, status: :unprocessable_entity
+        end
+      rescue StandardError => e
+        render json: { error: "Spotify import failed", message: e.message }, status: :service_unavailable
       end
 
       # POST /api/v1/artists/:id/fetch_events
