@@ -16,7 +16,26 @@ module Api
         @artists = @artists.search(params[:search]) if params[:search].present?
 
         # Order by name
-        @artists = @artists.order(:name)
+        @artists = @artists.order(:name).load
+
+        # Precompute aggregates in bulk to avoid N+1 queries
+        artist_ids = @artists.map(&:id)
+        now = Time.current
+
+        @followers_counts = UserArtist.where(artist_id: artist_ids)
+                                      .group(:artist_id)
+                                      .count
+
+        @upcoming_concerts_counts = Concert.where(artist_id: artist_ids)
+                                           .where("starts_at >= ?", now)
+                                           .group(:artist_id)
+                                           .count
+
+        @on_tour_artist_ids = Concert.where(artist_id: artist_ids)
+                                     .where(starts_at: now..6.months.from_now)
+                                     .distinct
+                                     .pluck(:artist_id)
+                                     .to_set
 
         render :index, status: :ok
       end

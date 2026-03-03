@@ -33,10 +33,10 @@ json.ticketmaster_id artist.ticketmaster_id
 json.ticketmaster_url artist.ticketmaster_url
 json.ticketmaster_name artist.ticketmaster_name
 
-# Computed attributes
-json.followers_count artist.followers.count
-json.upcoming_concerts_count artist.upcoming_concerts.size
-json.on_tour artist.on_tour?
+# Computed attributes (precomputed in controller to avoid N+1 queries)
+json.followers_count @followers_counts[artist.id].to_i
+json.upcoming_concerts_count @upcoming_concerts_counts[artist.id].to_i
+json.on_tour @on_tour_artist_ids.include?(artist.id)
 json.social_links artist.social_links
 json.is_enriched artist.enriched?
 json.primary_image_url artist.primary_image_url
