@@ -2,6 +2,10 @@ Rails.application.routes.draw do
   # Health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # PWA manifest and service worker (Rails 8 native)
+  get "/manifest.json", to: "rails/pwa#manifest", as: :pwa_manifest
+  get "/service-worker.js", to: "rails/pwa#service_worker", as: :pwa_service_worker
+
   # Devise routes for authentication
   devise_for :users,
     path: "api/auth",

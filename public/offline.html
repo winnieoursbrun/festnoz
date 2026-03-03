@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#C0392B">
+  <title>FestNoz — Hors connexion</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #C0392B;
+      --red-dark: #8E1B12;
+      --bg: #0d0606;
+      --card: #1a0c0c;
+      --text: #f5f0f0;
+      --muted: #8a6e6e;
+      --border: #2d1a1a;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(192, 57, 43, 0.12) 0%, transparent 70%),
+        var(--bg);
+    }
+
+    .icon {
+      width: 96px;
+      height: 96px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #D44235, #8E1B12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(192, 57, 43, 0.35);
+    }
+
+    .icon svg {
+      width: 56px;
+      height: 56px;
+    }
+
+    h1 {
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      text-align: center;
+    }
+
+    h1 span {
+      color: var(--red);
+    }
+
+    p {
+      font-size: 1rem;
+      color: var(--muted);
+      text-align: center;
+      max-width: 360px;
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      max-width: 380px;
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .hint {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text);
+      padding: 0.5rem 0;
+    }
+
+    .hint + .hint {
+      border-top: 1px solid var(--border);
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--red);
+      flex-shrink: 0;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--red);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.75rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    button:hover { background: #a93226; }
+    button:active { transform: scale(0.97); }
+  </style>
+</head>
+<body>
+  <div class="icon">
+    <!-- Inline note icon -->
+    <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="20" cy="38" rx="9" ry="6.5" fill="white" transform="rotate(-22 20 38)"/>
+      <rect x="28" y="12" width="2.8" height="28" rx="1.4" fill="white"/>
+      <path d="M30.8 12 C42 15.5 43 25 31.5 27.5" stroke="white" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+      <circle cx="17" cy="48" r="1.8" fill="white" opacity="0.75"/>
+      <circle cx="22.5" cy="48" r="1.8" fill="white" opacity="0.75"/>
+      <circle cx="28" cy="48" r="1.8" fill="white" opacity="0.75"/>
+    </svg>
+  </div>
+
+  <h1>Pas de connexion<br><span>internet</span></h1>
+  <p>FestNoz ne peut pas charger les contenus. Retrouvez les concerts dès que vous serez de nouveau connecté.</p>
+
+  <div class="card">
+    <div class="card-title">En attendant</div>
+    <div class="hint"><span class="dot"></span>Vérifiez votre Wi-Fi ou vos données mobiles</div>
+    <div class="hint"><span class="dot"></span>Les pages déjà visitées restent disponibles</div>
+    <div class="hint"><span class="dot"></span>Votre sélection d'artistes est sauvegardée</div>
+  </div>
+
+  <button onclick="location.reload()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+      <path d="M13.65 2.35A8 8 0 1 0 15 8h-2a6 6 0 1 1-1.28-3.72L9 7h6V1l-1.35 1.35Z"/>
+    </svg>
+    Réessayer
+  </button>
+</body>
+</html>

@@ -10,6 +10,20 @@ import '../assets/stylesheets/application.css'
 import * as Sentry from "@sentry/vue";
 import { createSentryPiniaPlugin } from "@sentry/vue";
 
+// ── Service Worker registration ──────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/service-worker.js', { scope: '/' })
+      .then((reg) => {
+        console.debug('[PWA] Service worker registered', reg.scope)
+      })
+      .catch((err) => {
+        console.warn('[PWA] Service worker registration failed', err)
+      })
+  })
+}
+
 const app = createApp(App)
 const pinia = createPinia()
 

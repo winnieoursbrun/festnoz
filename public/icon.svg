@@ -1,3 +1,29 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D44235"/>
+      <stop offset="100%" stop-color="#8E1B12"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.14"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+  <!-- Subtle top highlight -->
+  <rect width="512" height="260" rx="96" ry="96" fill="url(#shine)"/>
+
+  <!-- Eighth note (music note with flag) -->
+  <!-- Note head: filled ellipse, slightly rotated -->
+  <ellipse cx="214" cy="332" rx="70" ry="50" fill="white" transform="rotate(-22 214 332)"/>
+  <!-- Stem: right side of note head up to top -->
+  <rect x="272" y="124" width="20" height="216" rx="10" fill="white"/>
+  <!-- Flag: curved from stem top -->
+  <path d="M 292,124 C 375,152 382,232 288,258" stroke="white" stroke-width="20" fill="none" stroke-linecap="round"/>
+
+  <!-- Three ermine dots (Breton heraldry nod) -->
+  <circle cx="186" cy="418" r="13" fill="white" opacity="0.75"/>
+  <circle cx="230" cy="418" r="13" fill="white" opacity="0.75"/>
+  <circle cx="274" cy="418" r="13" fill="white" opacity="0.75"/>
 </svg>
