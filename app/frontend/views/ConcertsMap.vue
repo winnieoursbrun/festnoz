@@ -22,19 +22,22 @@
             :initial="{ opacity: 0, y: -10 }"
             :enter="{ opacity: 1, y: 0, transition: { delay: 100 } }"
           >
-            <Button
-              @click="getUserLocation"
-              :disabled="loadingLocation"
-              variant="outline"
-              class="h-10 sm:w-auto bg-background/50 hover:bg-accent group"
-            >
-              <Crosshair v-if="!loadingLocation" class="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
-              <Loader2 v-else class="w-4 h-4 mr-2 animate-spin" />
-              {{ loadingLocation ? 'Locating...' : 'My Location' }}
-            </Button>
+            <div class="flex flex-col gap-1">
+              <Button
+                @click="getUserLocation"
+                :disabled="loadingLocation"
+                variant="outline"
+                class="h-10 sm:w-auto bg-background/50 hover:bg-accent group"
+              >
+                <Crosshair v-if="!loadingLocation" class="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
+                <Loader2 v-else class="w-4 h-4 mr-2 animate-spin" />
+                {{ loadingLocation ? 'Locating...' : userLocation ? 'My Location' : 'Use My Location' }}
+              </Button>
+              <p v-if="locationError" class="text-xs text-destructive px-1">{{ locationError }}</p>
+            </div>
 
             <div class="flex gap-2 flex-1 sm:flex-initial">
-              <div class="relative flex-1 sm:w-[200px] group">
+              <div class="relative w-[160px] group">
                 <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input
                   v-model="searchQuery"
@@ -44,19 +47,24 @@
                   class="h-10 pl-10 bg-background/50 border-border/50"
                 />
               </div>
-              <div class="flex flex-col justify-center gap-1 min-w-[180px] h-10 px-3 rounded-lg bg-background/50 border border-border/50">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <Ruler class="w-4 h-4 text-muted-foreground" />
-                    <span class="text-xs text-muted-foreground">Radius</span>
-                  </div>
-                  <span class="text-xs font-semibold text-primary">{{ radiusDisplayText }}</span>
-                </div>
-              </div>
+              <Select v-model="selectedRadius" @update:modelValue="handleRadiusChange">
+                <SelectTrigger class="h-10 w-[160px] bg-background/50 border-border/50">
+                  <Ruler class="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Radius" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="25">25 km</SelectItem>
+                  <SelectItem value="50">50 km</SelectItem>
+                  <SelectItem value="100">100 km</SelectItem>
+                  <SelectItem value="200">200 km</SelectItem>
+                  <SelectItem value="500">500 km</SelectItem>
+                  <SelectItem value="10000">Unlimited</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Select v-model="selectedArtistId">
-              <SelectTrigger class="h-10 w-[180px] bg-background/50 border-border/50">
+              <SelectTrigger class="h-10 w-[160px] bg-background/50 border-border/50">
                 <Users class="w-4 h-4 mr-2 text-muted-foreground" />
                 <SelectValue placeholder="All Followed" />
               </SelectTrigger>
@@ -72,25 +80,19 @@
               </SelectContent>
             </Select>
 
-            <div class="relative flex-1 sm:w-[160px] group">
-              <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
-              <Input
-                v-model="dateFrom"
-                type="date"
-                placeholder="From date"
-                class="h-10 pl-10 bg-background/50 border-border/50"
-              />
-            </div>
-
-            <div class="relative flex-1 sm:w-[160px] group">
-              <Calendar class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
-              <Input
-                v-model="dateTo"
-                type="date"
-                placeholder="To date"
-                class="h-10 pl-10 bg-background/50 border-border/50"
-              />
-            </div>
+            <Select v-model="selectedTimePeriod">
+              <SelectTrigger class="h-10 w-[160px] bg-background/50 border-border/50">
+                <Calendar class="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Time period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="this_week">This week</SelectItem>
+                <SelectItem value="this_month">This month</SelectItem>
+                <SelectItem value="next_3_months">Next 3 months</SelectItem>
+                <SelectItem value="next_6_months">Next 6 months</SelectItem>
+                <SelectItem value="all">All upcoming</SelectItem>
+              </SelectContent>
+            </Select>
 
             <Badge variant="secondary" class="h-10 justify-center py-2 px-4 bg-primary/10 text-primary border-primary/20">
               <Music class="w-3 h-3 mr-1.5" />
@@ -269,48 +271,15 @@ const artistsStore = useArtistsStore()
 const mapCenter = ref<[number, number] | null>(null)
 const mapZoom = ref(10)
 const searchQuery = ref('')
-
-// Logarithmic scale constants
-const MIN_RADIUS = 10
-const MAX_RADIUS = 10000
-const LOG_MIN = Math.log(MIN_RADIUS)
-const LOG_MAX = Math.log(MAX_RADIUS)
-
-// Convert slider position (0-100) to actual radius using logarithmic scale
-function sliderToRadius(position: number): number {
-  const logRadius = LOG_MIN + (position / 100) * (LOG_MAX - LOG_MIN)
-  return Math.round(Math.exp(logRadius))
-}
-
-// Convert radius to slider position (0-100) using logarithmic scale
-function radiusToSlider(radius: number): number {
-  const logRadius = Math.log(radius)
-  return Math.round(((logRadius - LOG_MIN) / (LOG_MAX - LOG_MIN)) * 100)
-}
-
-const sliderPosition = ref([radiusToSlider(100)]) // Slider position (0-100), default to 100km
+const selectedRadius = ref<string>('100')
 const loadingLocation = ref(false)
+const locationError = ref<string | null>(null)
+const userLocation = ref<[number, number] | null>(null)
 const selectedConcert = ref<any>(null)
 const selectedArtistId = ref<string>('all')
-const dateFrom = ref<string>('')
-const dateTo = ref<string>('')
+const selectedTimePeriod = ref<string>('this_month')
 
-// Computed property for actual radius from slider position
-const searchRadius = computed(() => {
-  return sliderToRadius(sliderPosition.value[0])
-})
-
-// Computed property for radius display text
-const radiusDisplayText = computed(() => {
-  const radius = searchRadius.value
-  if (radius >= 10000) {
-    return 'Unlimited'
-  }
-  if (radius >= 1000) {
-    return `${Math.round(radius / 100) / 10}k km`
-  }
-  return `${radius} km`
-})
+const searchRadius = computed(() => Number.parseInt(selectedRadius.value))
 
 // Get unique followed artists that have concerts
 const uniqueArtists = computed(() => {
@@ -348,18 +317,25 @@ const filteredConcerts = computed(() => {
     )
   }
 
-  // Filter by date range
-  if (dateFrom.value) {
-    const fromDate = new Date(dateFrom.value)
-    fromDate.setHours(0, 0, 0, 0)
-    concerts = concerts.filter(concert => new Date(concert.starts_at) >= fromDate)
+  // Filter by time period
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  const periodEnd = new Date(now)
+  if (selectedTimePeriod.value === 'this_week') {
+    periodEnd.setDate(periodEnd.getDate() + 7)
+  } else if (selectedTimePeriod.value === 'this_month') {
+    periodEnd.setDate(periodEnd.getDate() + 30)
+  } else if (selectedTimePeriod.value === 'next_3_months') {
+    periodEnd.setMonth(periodEnd.getMonth() + 3)
+  } else if (selectedTimePeriod.value === 'next_6_months') {
+    periodEnd.setMonth(periodEnd.getMonth() + 6)
   }
-
-  if (dateTo.value) {
-    const toDate = new Date(dateTo.value)
-    toDate.setHours(23, 59, 59, 999)
-    concerts = concerts.filter(concert => new Date(concert.starts_at) <= toDate)
-  }
+  concerts = concerts.filter(concert => {
+    const date = new Date(concert.starts_at)
+    if (date < now) return false
+    if (selectedTimePeriod.value !== 'all' && date > periodEnd) return false
+    return true
+  })
 
   return concerts
 })
@@ -373,15 +349,44 @@ function formatTime(dateString: string): string {
 }
 
 async function getUserLocation() {
+  locationError.value = null
+
+  // If we already have a confirmed GPS fix, just re-center — no new prompt needed
+  if (userLocation.value) {
+    mapCenter.value = userLocation.value
+    mapZoom.value = 10
+    return
+  }
+
+  // Check permission state before requesting (Permissions API)
+  if (navigator.permissions) {
+    try {
+      const status = await navigator.permissions.query({ name: 'geolocation' })
+      if (status.state === 'denied') {
+        locationError.value = 'Location blocked — enable it in your browser settings.'
+        return
+      }
+    } catch {
+      // permissions API not fully supported, fall through to getCurrentPosition
+    }
+  }
+
   loadingLocation.value = true
   try {
     const location = await getCurrentLocation()
+    userLocation.value = [location.lat, location.lng]
     mapCenter.value = [location.lat, location.lng]
     mapZoom.value = 10
     await updateConcerts(location.lat, location.lng)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to get location:', error)
-    setDefaultLocation()
+    if (error?.code === 1 /* PERMISSION_DENIED */) {
+      locationError.value = 'Location blocked — enable it in your browser settings.'
+    } else if (error?.code === 2 /* POSITION_UNAVAILABLE */) {
+      locationError.value = 'Location temporarily unavailable. Try again in a moment.'
+    } else {
+      locationError.value = 'Could not get your location. Try again.'
+    }
   } finally {
     loadingLocation.value = false
   }
@@ -438,7 +443,26 @@ function centerOnConcert(concert: any) {
 onMounted(async () => {
   // Fetch followed artists first
   await artistsStore.fetchFollowedArtists()
-  // Then get location and fetch concerts
-  getUserLocation()
+
+  // Auto-request location only when the browser hasn't been asked yet (permission = 'prompt')
+  // Avoids re-triggering a dialog on every navigation if the user previously denied
+  if (navigator.permissions) {
+    try {
+      const status = await navigator.permissions.query({ name: 'geolocation' })
+      if (status.state === 'granted') {
+        // Permission already granted – fetch silently
+        getUserLocation()
+      } else if (status.state === 'prompt') {
+        // First visit – auto-prompt
+        getUserLocation()
+      }
+      // state === 'denied' → leave map empty, let user click the button for the error message
+    } catch {
+      // Permissions API unsupported – fall back to always trying
+      getUserLocation()
+    }
+  } else {
+    getUserLocation()
+  }
 })
 </script>

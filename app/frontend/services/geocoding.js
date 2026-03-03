@@ -72,7 +72,8 @@ export function getCurrentLocation() {
       },
       (error) => {
         reject(error)
-      }
+      },
+      { timeout: 10000, maximumAge: 60000 }
     )
   })
 }
