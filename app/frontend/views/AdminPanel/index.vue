@@ -167,7 +167,7 @@
     />
 
     <!-- Delete Confirmation Dialog -->
-    <AlertDialog :open="!!itemToDelete" @update:open="(open) => !open && (itemToDelete = null)">
+    <AlertDialog :open="showDeleteDialog" @update:open="(open) => { if (!open) { showDeleteDialog = false; itemToDelete = null } }">
       <AlertDialogContent class="bg-card/95 backdrop-blur-sm border-border/50">
         <AlertDialogHeader>
           <AlertDialogTitle class="flex items-center gap-2">
@@ -180,11 +180,11 @@
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel @click="itemToDelete = null" class="font-medium">Cancel</AlertDialogCancel>
-          <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90 font-medium" @click="executeDelete">
+          <AlertDialogCancel @click="showDeleteDialog = false; itemToDelete = null" class="font-medium">Cancel</AlertDialogCancel>
+          <Button variant="destructive" class="font-medium" @click="executeDelete">
             <Trash2 class="w-4 h-4 mr-2" />
             Delete
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -192,7 +192,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useArtistsStore } from '../../stores/artists'
 import { useConcertsStore } from '../../stores/concerts'
 import { useUsersStore } from '../../stores/users'
@@ -200,7 +201,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -221,13 +221,30 @@ const artistsStore = useArtistsStore()
 const concertsStore = useConcertsStore()
 const usersStore = useUsersStore()
 
-const activeTab = ref('artists')
+const route = useRoute()
+const router = useRouter()
+
+const VALID_TABS = ['artists', 'concerts', 'users'] as const
+type Tab = typeof VALID_TABS[number]
+
+const initialTab = VALID_TABS.includes(route.query.tab as Tab) ? (route.query.tab as Tab) : 'artists'
+const activeTab = ref<Tab>(initialTab)
+
+watch(activeTab, (tab) => {
+  router.replace({ query: { tab } })
+})
+
+// Set initial URL if missing
+if (!route.query.tab) {
+  router.replace({ query: { tab: activeTab.value } })
+}
 const showArtistForm = ref(false)
 const showConcertForm = ref(false)
 const showUserForm = ref(false)
 const editingArtist = ref<any>(null)
 const editingConcert = ref<any>(null)
 const editingUser = ref<any>(null)
+const showDeleteDialog = ref(false)
 const itemToDelete = ref<any>(null)
 const deleteType = ref<'artist' | 'concert' | 'user' | null>(null)
 
@@ -264,13 +281,19 @@ function onConcertSaved() {
 }
 
 function confirmDeleteArtist(artist: any) {
-  itemToDelete.value = artist
-  deleteType.value = 'artist'
+  setTimeout(() => {
+    itemToDelete.value = artist
+    deleteType.value = 'artist'
+    showDeleteDialog.value = true
+  }, 150)
 }
 
 function confirmDeleteConcert(concert: any) {
-  itemToDelete.value = concert
-  deleteType.value = 'concert'
+  setTimeout(() => {
+    itemToDelete.value = concert
+    deleteType.value = 'concert'
+    showDeleteDialog.value = true
+  }, 150)
 }
 
 function openUserForm(user: any = null) {
@@ -290,22 +313,30 @@ function onUserSaved() {
 }
 
 function confirmDeleteUser(user: any) {
-  itemToDelete.value = user
-  deleteType.value = 'user'
+  setTimeout(() => {
+    itemToDelete.value = user
+    deleteType.value = 'user'
+    showDeleteDialog.value = true
+  }, 150)
 }
 
 async function executeDelete() {
-  if (!itemToDelete.value) return
+  if (!itemToDelete.value || !deleteType.value) return
+
+  const id = itemToDelete.value.id
+  const type = deleteType.value
+
+  showDeleteDialog.value = false
 
   try {
-    if (deleteType.value === 'artist') {
-      await artistsStore.deleteArtist(itemToDelete.value.id)
+    if (type === 'artist') {
+      await artistsStore.deleteArtist(id)
       toast.success('Artist deleted')
-    } else if (deleteType.value === 'concert') {
-      await concertsStore.deleteConcert(itemToDelete.value.id)
+    } else if (type === 'concert') {
+      await concertsStore.deleteConcert(id)
       toast.success('Concert deleted')
-    } else if (deleteType.value === 'user') {
-      await usersStore.deleteUser(itemToDelete.value.id)
+    } else if (type === 'user') {
+      await usersStore.deleteUser(id)
       toast.success('User deleted')
     }
   } catch (error) {

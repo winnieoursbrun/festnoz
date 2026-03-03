@@ -74,9 +74,15 @@ const router = createRouter({
 })
 
 // Navigation guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   const isAuthenticated = !!authStore.token
+
+  // If authenticated but user object not yet loaded, fetch it before checking admin
+  if (isAuthenticated && !authStore.user) {
+    await authStore.fetchCurrentUser()
+  }
+
   const isAdmin = authStore.user?.admin
 
   if (to.meta.requiresAuth && !isAuthenticated) {

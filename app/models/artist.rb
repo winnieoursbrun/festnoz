@@ -6,6 +6,7 @@ class Artist < ApplicationRecord
   # Associations
   has_many :concerts, dependent: :destroy
   has_many :user_artists, dependent: :destroy
+  has_many :suggested_artists, dependent: :destroy
   has_many :followers, through: :user_artists, source: :user
 
   # Validations
@@ -20,7 +21,7 @@ class Artist < ApplicationRecord
   # Scopes
   scope :by_genre, ->(genre) { where(genre: genre) }
   scope :search, ->(query) { where("name ILIKE ?", "%#{sanitize_sql_like(query)}%") }
-  scope :needs_enrichment, -> { where(audiodb_status: [nil, "pending"]) }
+  scope :needs_enrichment, -> { where(audiodb_status: [ nil, "pending" ]) }
   scope :enriched, -> { where(audiodb_status: "enriched") }
   scope :not_found_in_audiodb, -> { where(audiodb_status: "not_found") }
 

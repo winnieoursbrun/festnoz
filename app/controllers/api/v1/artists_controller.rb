@@ -3,9 +3,9 @@
 module Api
   module V1
     class ArtistsController < BaseController
-      skip_before_action :authenticate_user!, only: [:index, :show, :concerts]
-      before_action :require_admin, only: [:create, :update, :destroy, :enrich, :fetch_events, :fetch_all_events, :search_spotify, :import_from_spotify]
-      before_action :set_artist, only: [:show, :update, :destroy, :concerts, :enrich, :fetch_events]
+      skip_before_action :authenticate_user!, only: [ :index, :show, :concerts ]
+      before_action :require_admin, only: [ :create, :update, :destroy, :enrich, :fetch_events, :fetch_all_events, :search_spotify, :import_from_spotify ]
+      before_action :set_artist, only: [ :show, :update, :destroy, :concerts, :enrich, :fetch_events ]
 
       # GET /api/v1/artists
       def index
@@ -138,7 +138,7 @@ module Api
           render :create, status: :created
         else
           render json: {
-            error: 'Artist could not be created',
+            error: "Artist could not be created",
             message: @artist.errors.full_messages
           }, status: :unprocessable_entity
         end
@@ -150,7 +150,7 @@ module Api
           render :update, status: :ok
         else
           render json: {
-            error: 'Artist could not be updated',
+            error: "Artist could not be updated",
             message: @artist.errors.full_messages
           }, status: :unprocessable_entity
         end
@@ -160,7 +160,7 @@ module Api
       def destroy
         @artist.destroy
         render json: {
-          message: 'Artist deleted successfully'
+          message: "Artist deleted successfully"
         }, status: :ok
       end
 
@@ -177,7 +177,8 @@ module Api
           :genre,
           :image_url,
           :country,
-          :website
+          :website,
+          :ticketmaster_id
         )
       end
 

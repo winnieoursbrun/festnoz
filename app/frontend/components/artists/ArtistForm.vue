@@ -79,6 +79,25 @@
           />
         </div>
 
+        <div class="space-y-2">
+          <Label for="ticketmaster_id">Ticketmaster ID</Label>
+          <Input
+            id="ticketmaster_id"
+            v-model="formData.ticketmaster_id"
+            type="text"
+            placeholder="e.g. K8vZ917G7f0"
+          />
+          <a
+            v-if="formData.ticketmaster_id"
+            :href="`https://www.ticketmaster.com/artist/${formData.ticketmaster_id}`"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm text-blue-500 hover:underline"
+          >
+            View on Ticketmaster ↗
+          </a>
+        </div>
+
         <!-- Buttons -->
         <DialogFooter class="gap-2">
           <Button type="button" variant="outline" @click="$emit('close')">
@@ -124,6 +143,7 @@ interface Artist {
   image_url?: string
   country?: string
   website?: string
+  ticketmaster_id?: string
 }
 
 const props = defineProps<{
@@ -143,7 +163,8 @@ const formData = ref({
   description: '',
   image_url: '',
   country: '',
-  website: ''
+  website: '',
+  ticketmaster_id: ''
 })
 
 const loading = ref(false)
