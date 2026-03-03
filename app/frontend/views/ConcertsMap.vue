@@ -269,12 +269,6 @@ const artistsStore = useArtistsStore()
 const mapCenter = ref<[number, number] | null>(null)
 const mapZoom = ref(10)
 const searchQuery = ref('')
-const sliderPosition = ref([100]) // Slider position (0-100), default to max
-const loadingLocation = ref(false)
-const selectedConcert = ref<any>(null)
-const selectedArtistId = ref<string>('all')
-const dateFrom = ref<string>('')
-const dateTo = ref<string>('')
 
 // Logarithmic scale constants
 const MIN_RADIUS = 10
@@ -293,6 +287,13 @@ function radiusToSlider(radius: number): number {
   const logRadius = Math.log(radius)
   return Math.round(((logRadius - LOG_MIN) / (LOG_MAX - LOG_MIN)) * 100)
 }
+
+const sliderPosition = ref([radiusToSlider(100)]) // Slider position (0-100), default to 100km
+const loadingLocation = ref(false)
+const selectedConcert = ref<any>(null)
+const selectedArtistId = ref<string>('all')
+const dateFrom = ref<string>('')
+const dateTo = ref<string>('')
 
 // Computed property for actual radius from slider position
 const searchRadius = computed(() => {
@@ -380,6 +381,7 @@ async function getUserLocation() {
     await updateConcerts(location.lat, location.lng)
   } catch (error) {
     console.error('Failed to get location:', error)
+    setDefaultLocation()
   } finally {
     loadingLocation.value = false
   }
