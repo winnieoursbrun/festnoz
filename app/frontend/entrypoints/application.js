@@ -86,28 +86,31 @@ app.use(MotionPlugin, {
   }
 })
 
-// Initialize Sentry for error tracking and performance monitoring
-Sentry.init({
-  app,
-  dsn: "https://91d774a6c3e7b1bc7f9b0de01bf8e325@o4510976802357248.ingest.de.sentry.io/4510976822280272",
-  // Setting this option to true will send default PII data to Sentry.
-  // For example, automatic IP address collection on events
-  sendDefaultPii: true,
-  integrations: [
-    Sentry.browserTracingIntegration({ router }),
-    Sentry.replayIntegration()
-  ],
-  // Tracing
-  tracesSampleRate: 1.0, // Capture 100% of the transactions
-  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-  tracePropagationTargets: ["localhost", /^https:\/\/festnoz\.link\/api/],
-  // Session Replay
-  replaysSessionSampleRate: 0.1, // This sets the sample rate at 10%. You may want to change it to 100% while in development and then sample at a lower rate in production.
-  replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.,
-  // Logs
-  enableLogs: true
-});
-pinia.use(createSentryPiniaPlugin()); // Automatically capture Pinia state and actions in Sentry
+// Initialize Sentry for error tracking and performance monitoring (production only)
+if (import.meta.env.PROD) {
+  Sentry.init({
+    app,
+    dsn: "https://91d774a6c3e7b1bc7f9b0de01bf8e325@o4510976802357248.ingest.de.sentry.io/4510976822280272",
+    environment: import.meta.env.MODE,
+    // Setting this option to true will send default PII data to Sentry.
+    // For example, automatic IP address collection on events
+    sendDefaultPii: true,
+    integrations: [
+      Sentry.browserTracingIntegration({ router }),
+      Sentry.replayIntegration()
+    ],
+    // Tracing
+    tracesSampleRate: 1.0, // Capture 100% of the transactions
+    // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
+    tracePropagationTargets: [/^https:\/\/festnoz\.link/],
+    // Session Replay
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+    // Logs
+    enableLogs: true
+  });
+  pinia.use(createSentryPiniaPlugin()); // Automatically capture Pinia state and actions in Sentry
+}
 
 app.use(pinia)
 app.use(router)
