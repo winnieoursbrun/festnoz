@@ -56,7 +56,7 @@ module Users
       "#{base_url}/auth/success?token=#{token}"
     end
 
-    def respond_to_on_destroy
+    def respond_to_on_destroy(resource = nil)
       if request.headers["Authorization"].present?
         secret_key = Rails.application.credentials.devise_jwt_secret_key || Rails.application.credentials.secret_key_base
         jwt_payload = JWT.decode(
