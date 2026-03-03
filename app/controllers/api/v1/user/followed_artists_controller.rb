@@ -6,7 +6,7 @@ module Api
       class FollowedArtistsController < BaseController
         # GET /api/v1/user/followed_artists
         def index
-          @artists = current_user.followed_artists.order(:name)
+          @artists = current_user.followed_artists.includes(:user_artists, :concerts).order(:name)
 
           render :index, status: :ok
         end
