@@ -80,23 +80,57 @@
           <p class="text-sm text-muted-foreground">
             We will send a confirmation link to your email. Your account is deleted only after clicking that link.
           </p>
-          <Button variant="destructive" :disabled="requestingDeletion" @click="requestDeletion">
-            {{ requestingDeletion ? 'Sending...' : 'Delete my account' }}
+          <Button variant="destructive" :disabled="requestingDeletion" @click="openDeleteDialog">
+            Delete my account
           </Button>
         </CardContent>
       </Card>
     </div>
+
+    <!-- Delete account confirmation dialog -->
+    <Dialog v-model:open="showDeleteDialog">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle class="text-destructive">Delete account</DialogTitle>
+          <DialogDescription>
+            This action is permanent and cannot be undone. All your data will be erased.
+            <br />
+            Type your username <span class="font-semibold text-foreground">{{ settings.username }}</span> to confirm.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="space-y-2 py-2">
+          <Label for="confirm-username">Username</Label>
+          <Input
+            id="confirm-username"
+            v-model="deleteConfirmUsername"
+            placeholder="Enter your username"
+            autocomplete="off"
+          />
+        </div>
+        <DialogFooter class="gap-2">
+          <Button variant="outline" @click="closeDeleteDialog">Cancel</Button>
+          <Button
+            variant="destructive"
+            :disabled="deleteConfirmUsername !== settings.username || requestingDeletion"
+            @click="requestDeletion"
+          >
+            {{ requestingDeletion ? 'Sending...' : 'Delete my account' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { backendUrl } from '@/config'
 import api from '../services/api'
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -107,6 +141,12 @@ const savingProfile = ref(false)
 const savingPassword = ref(false)
 const disconnectingSpotify = ref(false)
 const requestingDeletion = ref(false)
+const showDeleteDialog = ref(false)
+const deleteConfirmUsername = ref('')
+
+function openDeleteDialog() {
+  showDeleteDialog.value = true
+}
 
 const settings = ref({
   email: '',
@@ -224,11 +264,21 @@ async function disconnectSpotify() {
   }
 }
 
+function closeDeleteDialog() {
+  showDeleteDialog.value = false
+  deleteConfirmUsername.value = ''
+}
+
+watch(showDeleteDialog, (val) => {
+  if (!val) deleteConfirmUsername.value = ''
+})
+
 async function requestDeletion() {
   requestingDeletion.value = true
   try {
     await api.post('/api/v1/account/deletion/request')
     toast.success('Confirmation email sent. Check your inbox to complete account deletion.')
+    closeDeleteDialog()
   } catch (error: any) {
     console.error(error)
     toast.error('Failed to request account deletion')
