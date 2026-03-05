@@ -4,6 +4,7 @@ import { MotionPlugin } from '@vueuse/motion'
 import App from '../App.vue'
 import router from '../router'
 import '../assets/stylesheets/application.css'
+import 'vue-sonner/style.css'
 // Leaflet CSS removed — map now uses OpenLayers (CSS imported in MapView.vue)
 
 // Sentry imports
