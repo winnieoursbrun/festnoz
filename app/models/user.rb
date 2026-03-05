@@ -14,6 +14,7 @@ class User < ApplicationRecord
   has_many :user_artists, dependent: :destroy
   has_many :followed_artists, through: :user_artists, source: :artist
   has_many :suggested_artists, dependent: :destroy
+  has_many :push_subscriptions, dependent: :destroy
   has_many :suggested_artist_records, through: :suggested_artists, source: :artist
 
   # Validations

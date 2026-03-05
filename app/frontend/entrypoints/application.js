@@ -15,8 +15,16 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/service-worker.js', { scope: '/' })
-      .then((reg) => {
+      .then(async (reg) => {
         console.debug('[PWA] Service worker registered', reg.scope)
+
+        if (reg.sync) {
+          try {
+            await reg.sync.register('festnoz-refresh')
+          } catch (err) {
+            console.debug('[PWA] Background sync registration failed', err)
+          }
+        }
       })
       .catch((err) => {
         console.warn('[PWA] Service worker registration failed', err)

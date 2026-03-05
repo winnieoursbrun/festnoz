@@ -1,11 +1,14 @@
 {
   "name": "FestNoz",
   "short_name": "FestNoz",
+  "id": "/?source=pwa",
   "description": "Track Breton music artists and discover concerts near you",
   "lang": "fr",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "orientation": "portrait-primary",
   "theme_color": "#C0392B",
   "background_color": "#1A0A0A",
@@ -29,6 +32,41 @@
       "purpose": "any"
     }
   ],
-  "screenshots": [],
-  "categories": ["music", "entertainment", "lifestyle"]
+  "screenshots": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "FestNoz mobile app"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "FestNoz desktop app"
+    }
+  ],
+  "categories": ["music", "entertainment", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open your dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "name": "Concert map",
+      "short_name": "Map",
+      "description": "Discover concerts near you",
+      "url": "/concerts-map"
+    },
+    {
+      "name": "Artists",
+      "short_name": "Artists",
+      "description": "Browse Breton music artists",
+      "url": "/artists"
+    }
+  ]
 }

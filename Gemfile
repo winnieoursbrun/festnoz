@@ -11,6 +11,7 @@ gem "puma", ">= 5.0"
 # Tailwind CSS is handled by Vite (see vite.config.ts)
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+gem "web-push"
 
 # Use Devise for authentication
 gem "devise"

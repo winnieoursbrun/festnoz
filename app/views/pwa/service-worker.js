@@ -1,12 +1,14 @@
 // FestNoz Service Worker
 // Caching strategy: network-first for API/navigation, cache-first for static assets
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const STATIC_CACHE  = `festnoz-static-${CACHE_VERSION}`;
 const API_CACHE     = `festnoz-api-${CACHE_VERSION}`;
 const IMAGE_CACHE   = `festnoz-images-${CACHE_VERSION}`;
+const API_TIMEOUT_MS = 4000;
+const OFFLINE_FALLBACK = "/offline.html";
 
-const PRECACHE_URLS = ["/", "/offline.html"];
+const PRECACHE_URLS = ["/", OFFLINE_FALLBACK, "/manifest.json", "/icon.png"];
 
 // ── Install ──────────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
@@ -39,21 +41,36 @@ self.addEventListener("fetch", (event) => {
   // Only handle same-origin requests
   if (url.origin !== location.origin) return;
 
-  // API routes → network-first (fresh data preferred)
+  // API routes
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(networkFirst(request, API_CACHE, 5000));
+    // Never cache auth/account endpoints
+    if (
+      url.pathname.startsWith("/api/v1/auth") ||
+      url.pathname.startsWith("/api/v1/account")
+    ) {
+      event.respondWith(fetch(request));
+      return;
+    }
+
+    // Non-GET requests bypass cache
+    if (request.method !== "GET") {
+      event.respondWith(fetch(request));
+      return;
+    }
+
+    event.respondWith(networkFirst(request, API_CACHE, API_TIMEOUT_MS));
     return;
   }
 
-  // Vite static assets (hashed filenames — effectively immutable) → cache-first
+  // Vite static assets + images → stale-while-revalidate
   if (url.pathname.startsWith("/vite/") || url.pathname.startsWith("/vite-dev/")) {
-    event.respondWith(cacheFirst(request, STATIC_CACHE));
+    event.respondWith(staleWhileRevalidate(request, STATIC_CACHE));
     return;
   }
 
-  // Images → cache-first with network fallback (long-lived)
+  // Images
   if (request.destination === "image") {
-    event.respondWith(cacheFirst(request, IMAGE_CACHE));
+    event.respondWith(staleWhileRevalidate(request, IMAGE_CACHE));
     return;
   }
 
@@ -77,7 +94,7 @@ async function networkFirst(request, cacheName, timeoutMs) {
     const response = timeoutMs
       ? await Promise.race([networkPromise, timeout(timeoutMs)])
       : await networkPromise;
-    if (response && response.status === 200) {
+    if (response && response.ok) {
       cache.put(request, response.clone());
     }
     return response;
@@ -88,17 +105,25 @@ async function networkFirst(request, cacheName, timeoutMs) {
 }
 
 // Cache-first: serve from cache, update cache in background if outdated
-async function cacheFirst(request, cacheName) {
+async function staleWhileRevalidate(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
-  if (cached) return cached;
-  try {
-    const response = await fetch(request);
-    if (response.status === 200) cache.put(request, response.clone());
-    return response;
-  } catch {
-    return Response.error();
+
+  const networkPromise = fetch(request)
+    .then((response) => {
+      if (response && response.ok) {
+        cache.put(request, response.clone());
+      }
+      return response;
+    })
+    .catch(() => null);
+
+  if (cached) {
+    return cached;
   }
+
+  const response = await networkPromise;
+  return response || Response.error();
 }
 
 // Navigation handler: network-first, fall back to cached "/" then /offline.html
@@ -106,15 +131,40 @@ async function navigationHandler(request) {
   const cache = await caches.open(STATIC_CACHE);
   try {
     const response = await fetch(request);
-    if (response.status === 200) cache.put(request, response.clone());
+    if (response.ok) cache.put(request, response.clone());
     return response;
   } catch {
     const cached =
       (await cache.match(request)) ||
       (await cache.match("/")) ||
-      (await cache.match("/offline.html"));
+      (await cache.match(OFFLINE_FALLBACK));
     return cached || Response.error();
   }
+}
+
+// ── Background Sync ─────────────────────────────────────────────────────────
+self.addEventListener("sync", (event) => {
+  if (event.tag === "festnoz-refresh") {
+    event.waitUntil(refreshCachedData());
+  }
+});
+
+async function refreshCachedData() {
+  const cache = await caches.open(API_CACHE);
+  const requests = await cache.keys();
+
+  await Promise.all(
+    requests.map(async (request) => {
+      try {
+        const response = await fetch(request);
+        if (response && response.ok) {
+          await cache.put(request, response.clone());
+        }
+      } catch {
+        // Ignore background refresh failures
+      }
+    })
+  );
 }
 
 // Timeout utility

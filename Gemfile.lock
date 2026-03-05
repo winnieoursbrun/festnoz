@@ -275,6 +275,7 @@ GEM
       omniauth (~> 2.0)
     omniauth-spotify (0.0.13)
       omniauth-oauth2 (~> 1.1)
+    openssl (4.0.1)
     orm_adapter (0.5.0)
     ostruct (0.6.3)
     parallel (1.27.0)
@@ -477,6 +478,9 @@ GEM
       actionview (>= 8.0.0)
       bindex (>= 0.4.0)
       railties (>= 8.0.0)
+    web-push (3.1.0)
+      jwt (~> 3.0)
+      openssl (>= 3.0)
     webmock (3.26.1)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
@@ -538,6 +542,7 @@ DEPENDENCIES
   tzinfo-data
   vite_rails
   web-console
+  web-push
   webmock
 
 BUNDLED WITH

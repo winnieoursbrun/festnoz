@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_02_110000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_06_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -84,6 +84,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_110000) do
     t.index ["jti"], name: "index_jwt_denylist_on_jti", unique: true
   end
 
+  create_table "push_subscriptions", force: :cascade do |t|
+    t.string "auth_key", null: false
+    t.datetime "created_at", null: false
+    t.text "endpoint", null: false
+    t.datetime "expiration_time"
+    t.datetime "last_seen_at"
+    t.string "p256dh_key", null: false
+    t.datetime "revoked_at"
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.bigint "user_id", null: false
+    t.index ["endpoint"], name: "index_push_subscriptions_on_endpoint", unique: true
+    t.index ["user_id", "revoked_at"], name: "index_push_subscriptions_on_user_id_and_revoked_at"
+    t.index ["user_id"], name: "index_push_subscriptions_on_user_id"
+  end
+
   create_table "suggested_artists", force: :cascade do |t|
     t.bigint "artist_id", null: false
     t.datetime "created_at", null: false
@@ -140,6 +156,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_02_110000) do
   end
 
   add_foreign_key "concerts", "artists"
+  add_foreign_key "push_subscriptions", "users"
   add_foreign_key "suggested_artists", "artists"
   add_foreign_key "suggested_artists", "users"
   add_foreign_key "user_artists", "artists"

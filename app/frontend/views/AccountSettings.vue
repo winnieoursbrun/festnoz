@@ -71,6 +71,69 @@
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Push notifications</CardTitle>
+          <CardDescription>Enable browser notifications for updates and reminders.</CardDescription>
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <div class="space-y-1 text-sm">
+            <p>
+              <span class="font-medium">Support status:</span>
+              <span class="text-muted-foreground"> {{ pushSupported ? 'Supported' : 'Not supported' }}</span>
+            </p>
+            <p>
+              <span class="font-medium">Permission status:</span>
+              <span class="text-muted-foreground"> {{ pushPermission }}</span>
+            </p>
+            <p>
+              <span class="font-medium">Device status:</span>
+              <span class="text-muted-foreground"> {{ pushSubscriptions.length > 0 ? 'Subscribed' : 'Not subscribed' }}</span>
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <Button
+              v-if="pushSupported && pushSubscriptions.length === 0"
+              :disabled="loadingPush || savingPush"
+              @click="enablePushNotifications"
+            >
+              {{ savingPush ? 'Enabling...' : 'Enable notifications' }}
+            </Button>
+
+            <Button
+              v-if="pushSupported && pushSubscriptions.length > 0"
+              variant="outline"
+              :disabled="loadingPush || savingPush"
+              @click="disablePushNotifications"
+            >
+              {{ savingPush ? 'Disabling...' : 'Disable notifications' }}
+            </Button>
+
+            <Button
+              v-if="pushSubscriptions.length > 0"
+              variant="outline"
+              :disabled="loadingPush || savingPush"
+              @click="sendTestPush"
+            >
+              Send test notification
+            </Button>
+          </div>
+
+          <p
+            v-if="pushStatusMessage"
+            class="text-sm"
+            :class="{
+              'text-green-600': pushStatusType === 'success',
+              'text-destructive': pushStatusType === 'error',
+              'text-muted-foreground': pushStatusType === 'info'
+            }"
+          >
+            {{ pushStatusMessage }}
+          </p>
+        </CardContent>
+      </Card>
+
       <Card class="border-destructive/40">
         <CardHeader>
           <CardTitle class="text-destructive">Danger zone</CardTitle>
@@ -124,10 +187,18 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { useAuthStore } from '../stores/auth'
+import { useAuthStore } from '../stores/auth.js'
 import { backendUrl } from '@/config'
-import api from '../services/api'
+import api from '../services/api.js'
 import { toast } from 'vue-sonner'
+import {
+  getNotificationPermission,
+  isPushSupported,
+  listPushSubscriptions,
+  sendTestPushNotification,
+  subscribeToPush,
+  unsubscribeFromPush
+} from '../services/pushNotifications'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -141,6 +212,13 @@ const savingProfile = ref(false)
 const savingPassword = ref(false)
 const disconnectingSpotify = ref(false)
 const requestingDeletion = ref(false)
+const pushSupported = ref(false)
+const pushPermission = ref<NotificationPermission | 'unsupported'>('unsupported')
+const pushSubscriptions = ref<any[]>([])
+const loadingPush = ref(false)
+const savingPush = ref(false)
+const pushStatusMessage = ref('')
+const pushStatusType = ref<'info' | 'success' | 'error'>('info')
 const showDeleteDialog = ref(false)
 const deleteConfirmUsername = ref('')
 
@@ -166,7 +244,42 @@ const passwordForm = ref({
 
 onMounted(async () => {
   await fetchSettings()
+  await initPushStatus()
 })
+
+async function initPushStatus() {
+  pushSupported.value = isPushSupported()
+  pushPermission.value = getNotificationPermission()
+
+  if (!pushSupported.value) {
+    pushSubscriptions.value = []
+    pushStatusType.value = 'info'
+    pushStatusMessage.value = 'Push notifications are not available on this browser/device.'
+    return
+  }
+
+  await refreshPushSubscriptions()
+}
+
+async function refreshPushSubscriptions() {
+  loadingPush.value = true
+  try {
+    pushSubscriptions.value = await listPushSubscriptions()
+    if (pushSubscriptions.value.length > 0) {
+      pushStatusType.value = 'success'
+      pushStatusMessage.value = 'Notifications are enabled on this device.'
+    } else {
+      pushStatusType.value = 'info'
+      pushStatusMessage.value = 'Notifications are currently disabled on this device.'
+    }
+  } catch (error: any) {
+    console.error(error)
+    toast.error('Failed to load push subscription status')
+  } finally {
+    loadingPush.value = false
+    pushPermission.value = getNotificationPermission()
+  }
+}
 
 async function fetchSettings() {
   loading.value = true
@@ -261,6 +374,72 @@ async function disconnectSpotify() {
     toast.error('Failed to disconnect Spotify')
   } finally {
     disconnectingSpotify.value = false
+  }
+}
+
+async function enablePushNotifications() {
+  savingPush.value = true
+  pushStatusType.value = 'info'
+  pushStatusMessage.value = 'Requesting notification permission...'
+  try {
+    await subscribeToPush()
+    await refreshPushSubscriptions()
+    pushStatusType.value = 'success'
+    pushStatusMessage.value = 'Push notifications enabled.'
+    toast.success('Push notifications enabled')
+  } catch (error: any) {
+    const message = error?.response?.data?.error || error?.message || 'Failed to enable push notifications'
+    pushStatusType.value = 'error'
+    pushStatusMessage.value = message
+    toast.error(message)
+  } finally {
+    savingPush.value = false
+    pushPermission.value = getNotificationPermission()
+  }
+}
+
+async function disablePushNotifications() {
+  if (pushSubscriptions.value.length === 0) return
+
+  savingPush.value = true
+  try {
+    const registration = await navigator.serviceWorker.getRegistration('/')
+    const browserSubscription = registration ? await registration.pushManager.getSubscription() : null
+
+    if (browserSubscription) {
+      await browserSubscription.unsubscribe()
+    }
+
+    await unsubscribeFromPush(pushSubscriptions.value[0].id)
+    await refreshPushSubscriptions()
+    pushStatusType.value = 'success'
+    pushStatusMessage.value = 'Push notifications disabled.'
+    toast.success('Push notifications disabled')
+  } catch (error: any) {
+    const message = error?.response?.data?.error || error?.message || 'Failed to disable push notifications'
+    pushStatusType.value = 'error'
+    pushStatusMessage.value = message
+    toast.error(message)
+  } finally {
+    savingPush.value = false
+    pushPermission.value = getNotificationPermission()
+  }
+}
+
+async function sendTestPush() {
+  savingPush.value = true
+  try {
+    await sendTestPushNotification()
+    pushStatusType.value = 'success'
+    pushStatusMessage.value = 'Test notification sent. Check your system notifications.'
+    toast.success('Test notification sent')
+  } catch (error: any) {
+    const message = error?.response?.data?.error || error?.message || 'Failed to send test notification'
+    pushStatusType.value = 'error'
+    pushStatusMessage.value = message
+    toast.error(message)
+  } finally {
+    savingPush.value = false
   }
 }
 

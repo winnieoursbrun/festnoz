@@ -54,6 +54,12 @@ Rails.application.routes.draw do
         delete "settings/music_accounts/:provider", to: "settings#disconnect_music_account"
         post "deletion/request", to: "settings#request_account_deletion"
         post "deletion/confirm", to: "deletion_confirmations#create"
+        get "push_subscriptions/public_key", to: "push_subscriptions#public_key"
+        resources :push_subscriptions, only: [ :index, :create, :destroy ] do
+          collection do
+            post :test
+          end
+        end
       end
 
       # Artists
