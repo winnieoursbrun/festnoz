@@ -63,8 +63,10 @@ describe('AuthSuccess', () => {
     expect(wrapper.text()).toContain('Redirecting you to the dashboard')
   })
 
-  it('redirects to login when no token in query', async () => {
-    const pushSpy = vi.spyOn(router, 'push')
+  it('redirects to backend login when no token in query', async () => {
+    // Mock window.location so location.href assignment is captured
+    const locationMock = { href: '' }
+    Object.defineProperty(globalThis, 'location', { value: locationMock, writable: true, configurable: true })
 
     // Navigate to auth success without token
     await router.push('/auth/success')
@@ -80,7 +82,8 @@ describe('AuthSuccess', () => {
 
     await flushPromises()
 
-    expect(pushSpy).toHaveBeenCalledWith('/login')
+    // Component redirects to backend login via window.location.href
+    expect(locationMock.href).toContain('/api/auth/login')
   })
 
   it('saves token to localStorage when token is present', async () => {
@@ -174,13 +177,16 @@ describe('AuthSuccess', () => {
     expect(pushSpy).toHaveBeenCalledWith('/dashboard')
   })
 
-  it('redirects to login on authentication error', async () => {
+  it('redirects to backend login on authentication error', async () => {
     const mockToken = 'invalid-token'
 
     const authStore = useAuthStore()
     authStore.fetchCurrentUser = vi.fn().mockRejectedValue(new Error('Invalid token'))
 
-    const pushSpy = vi.spyOn(router, 'push')
+    // Mock window.location
+    const locationMock = { href: '' }
+    Object.defineProperty(globalThis, 'location', { value: locationMock, writable: true, configurable: true })
+
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     await router.push(`/auth/success?token=${mockToken}`)
@@ -196,7 +202,8 @@ describe('AuthSuccess', () => {
 
     await flushPromises()
 
-    expect(pushSpy).toHaveBeenCalledWith('/login')
+    // Component redirects to backend login via window.location.href on error
+    expect(locationMock.href).toContain('/api/auth/login')
     expect(consoleErrorSpy).toHaveBeenCalled()
 
     consoleErrorSpy.mockRestore()
@@ -247,8 +254,11 @@ describe('AuthSuccess', () => {
     expect(authStore.fetchCurrentUser).toHaveBeenCalled()
   })
 
-  it('handles error parameter in query', async () => {
-    const pushSpy = vi.spyOn(router, 'push')
+  it('redirects to backend login when error parameter in query', async () => {
+    // Mock window.location
+    const locationMock = { href: '' }
+    Object.defineProperty(globalThis, 'location', { value: locationMock, writable: true, configurable: true })
+
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     await router.push('/auth/success?error=authentication_failed')
@@ -264,7 +274,8 @@ describe('AuthSuccess', () => {
 
     await flushPromises()
 
-    expect(pushSpy).toHaveBeenCalledWith('/login')
+    // No token present → component redirects to backend login
+    expect(locationMock.href).toContain('/api/auth/login')
 
     consoleErrorSpy.mockRestore()
   })

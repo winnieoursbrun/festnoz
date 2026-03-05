@@ -32,7 +32,7 @@ gem "geocoder"
 gem "vite_rails"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
-gem "tzinfo-data", platforms: %i[ windows jruby ]
+gem "tzinfo-data", platforms: %i[ mswin mswin64 mingw x64_mingw jruby ]
 
 # Use the database-backed adapters for Rails.cache, Active Job, and Action Cable
 gem "solid_cache"
@@ -63,6 +63,35 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # Test data factories
+  gem "factory_bot_rails"
+
+  # Fake data generation
+  gem "faker"
+end
+
+group :test do
+  # One-liner model/association tests
+  gem "shoulda-matchers"
+
+  # Context/describe/should DSL for Minitest
+  gem "shoulda-context"
+
+  # Bridges minitest/spec describe/it DSL into ActiveSupport::TestCase
+  gem "minitest-spec-rails"
+
+  # Mocking/stubbing for Minitest (replaces minitest/mock not in Minitest 6)
+  gem "mocha"
+
+  # HTTP request stubbing — prevent real external calls in tests
+  gem "webmock"
+
+  # Code coverage reporting
+  gem "simplecov", require: false
+
+  # Transactional test isolation
+  gem "database_cleaner-active_record"
 end
 
 group :development do

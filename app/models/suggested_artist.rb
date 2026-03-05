@@ -8,6 +8,6 @@ class SuggestedArtist < ApplicationRecord
   scope :ordered, -> { order(rank: :asc) }
   scope :recent, -> { order(synced_at: :desc) }
   scope :not_followed, -> {
-    where.not(artist_id: UserArtist.select(:artist_id).where(user_id: arel_table[:user_id]))
+    where("suggested_artists.artist_id NOT IN (SELECT user_artists.artist_id FROM user_artists WHERE user_artists.user_id = suggested_artists.user_id)")
   }
 end

@@ -75,7 +75,7 @@ describe('API Service', () => {
       await import('../api')
 
       expect(axios.create).toHaveBeenCalledWith({
-        baseURL: '/',
+        baseURL: '',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -237,7 +237,7 @@ describe('API Service', () => {
 
       expect(axios.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          baseURL: '/',
+          baseURL: '',
         })
       )
 
