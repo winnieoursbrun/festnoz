@@ -1,16 +1,14 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
-  include Devise::JWT::RevocationStrategies::Denylist
-
   ACCOUNT_DELETION_TOKEN_TTL = 24.hours
 
   # Devise modules
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
          :trackable, :omniauthable,
-         :jwt_authenticatable, jwt_revocation_strategy: self,
-         omniauth_providers: [:spotify]
+         :jwt_authenticatable, jwt_revocation_strategy: JwtDenylist,
+         omniauth_providers: [ :spotify ]
 
   # Associations
   has_many :user_artists, dependent: :destroy
