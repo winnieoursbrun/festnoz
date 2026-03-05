@@ -29,7 +29,7 @@ class CreateConcerts < ActiveRecord::Migration[8.1]
 
     # Note: artist_id index already created by t.references
     add_index :concerts, :starts_at
-    add_index :concerts, [:latitude, :longitude]
+    add_index :concerts, [ :latitude, :longitude ]
     add_index :concerts, :city
   end
 end

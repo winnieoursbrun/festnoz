@@ -34,7 +34,7 @@ class Concert < ApplicationRecord
 
   # Geocoder method: builds full address for geocoding
   def full_address
-    [venue_address, city, country].compact.join(", ")
+    [ venue_address, city, country ].compact.join(", ")
   end
 
   # Check if this record should be geocoded

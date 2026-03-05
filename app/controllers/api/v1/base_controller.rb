@@ -15,14 +15,14 @@ module Api
 
       def not_found(exception)
         render json: {
-          error: 'Not Found',
+          error: "Not Found",
           message: exception.message
         }, status: :not_found
       end
 
       def unprocessable_entity(exception)
         render json: {
-          error: 'Unprocessable Entity',
+          error: "Unprocessable Entity",
           message: exception.message,
           details: exception.record&.errors&.full_messages
         }, status: :unprocessable_entity
@@ -30,22 +30,22 @@ module Api
 
       def bad_request(exception)
         render json: {
-          error: 'Bad Request',
+          error: "Bad Request",
           message: exception.message
         }, status: :bad_request
       end
 
       def unauthorized
         render json: {
-          error: 'Unauthorized',
-          message: 'You must be logged in to access this resource'
+          error: "Unauthorized",
+          message: "You must be logged in to access this resource"
         }, status: :unauthorized
       end
 
       def forbidden
         render json: {
-          error: 'Forbidden',
-          message: 'You do not have permission to access this resource'
+          error: "Forbidden",
+          message: "You do not have permission to access this resource"
         }, status: :forbidden
       end
 

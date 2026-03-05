@@ -17,8 +17,8 @@ module Api
 
           if current_user.following?(@artist)
             return render json: {
-              error: 'Already following',
-              message: 'You are already following this artist'
+              error: "Already following",
+              message: "You are already following this artist"
             }, status: :unprocessable_entity
           end
 
@@ -33,15 +33,15 @@ module Api
 
           unless current_user.following?(@artist)
             return render json: {
-              error: 'Not following',
-              message: 'You are not following this artist'
+              error: "Not following",
+              message: "You are not following this artist"
             }, status: :unprocessable_entity
           end
 
           current_user.unfollow(@artist)
 
           render json: {
-            message: 'Artist unfollowed successfully'
+            message: "Artist unfollowed successfully"
           }, status: :ok
         end
       end

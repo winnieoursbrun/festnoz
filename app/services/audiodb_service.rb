@@ -50,9 +50,9 @@ class AudiodbService
     # First try lookup by ID if we have it, otherwise search by name
     audiodb_data = if artist.audiodb_id.present?
                      lookup_artist(artist.audiodb_id)
-                   else
+    else
                      search_artist(artist.name)
-                   end
+    end
 
     if audiodb_data.nil?
       artist.update(audiodb_status: "not_found", audiodb_enriched_at: Time.current)

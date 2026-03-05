@@ -6,6 +6,6 @@ class AddOmniauthToUsers < ActiveRecord::Migration[8.1]
     add_column :users, :spotify_refresh_token, :text
     add_column :users, :spotify_token_expires_at, :datetime
 
-    add_index :users, [:provider, :uid], unique: true
+    add_index :users, [ :provider, :uid ], unique: true
   end
 end

@@ -3,9 +3,9 @@
 module Api
   module V1
     class ConcertsController < BaseController
-      skip_before_action :authenticate_user!, only: [:index, :show, :nearby, :upcoming]
-      before_action :require_admin, only: [:create, :update, :destroy]
-      before_action :set_concert, only: [:show, :update, :destroy]
+      skip_before_action :authenticate_user!, only: [ :index, :show, :nearby, :upcoming ]
+      before_action :require_admin, only: [ :create, :update, :destroy ]
+      before_action :set_concert, only: [ :show, :update, :destroy ]
 
       # GET /api/v1/concerts
       def index
@@ -38,8 +38,8 @@ module Api
       def nearby
         unless params[:lat].present? && params[:lng].present?
           return render json: {
-            error: 'Bad Request',
-            message: 'Latitude and longitude are required'
+            error: "Bad Request",
+            message: "Latitude and longitude are required"
           }, status: :bad_request
         end
 
@@ -47,7 +47,7 @@ module Api
         lng = params[:lng].to_f
         radius = params[:radius].present? ? params[:radius].to_f : 50
 
-        @concerts = Concert.near([lat, lng], radius, units: :km)
+        @concerts = Concert.near([ lat, lng ], radius, units: :km)
                             .includes(:artist)
                             .where("starts_at >= ?", Time.current)
                             .order("distance ASC")
@@ -74,7 +74,7 @@ module Api
           render :create, status: :created
         else
           render json: {
-            error: 'Concert could not be created',
+            error: "Concert could not be created",
             message: @concert.errors.full_messages
           }, status: :unprocessable_entity
         end
@@ -86,7 +86,7 @@ module Api
           render :update, status: :ok
         else
           render json: {
-            error: 'Concert could not be updated',
+            error: "Concert could not be updated",
             message: @concert.errors.full_messages
           }, status: :unprocessable_entity
         end
@@ -96,7 +96,7 @@ module Api
       def destroy
         @concert.destroy
         render json: {
-          message: 'Concert deleted successfully'
+          message: "Concert deleted successfully"
         }, status: :ok
       end
 
