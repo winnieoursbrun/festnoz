@@ -15,7 +15,7 @@ gem "jbuilder"
 # Use Devise for authentication
 gem "devise"
 gem "devise-jwt"
-gem "bcrypt", "~> 3.1.7"
+gem "bcrypt", "~> 3.1.21"
 
 # OmniAuth for OAuth authentication
 gem "omniauth"
