@@ -18,7 +18,7 @@ class SpotifyServiceTest < ActiveSupport::TestCase
       response_body = {
         artists: {
           items: [
-            { id: "sp1", name: "Plantec", genres: ["Breton"], images: [], followers: { total: 100 }, popularity: 50 }
+            { id: "sp1", name: "Plantec", genres: [ "Breton" ], images: [], followers: { total: 100 }, popularity: 50 }
           ]
         }
       }.to_json
@@ -44,8 +44,8 @@ class SpotifyServiceTest < ActiveSupport::TestCase
       artist_body = {
         id: "spot1",
         name: "New Breton Artist",
-        genres: ["breton"],
-        images: [{ url: "http://img.example.com/1.jpg" }],
+        genres: [ "breton" ],
+        images: [ { url: "http://img.example.com/1.jpg" } ],
         followers: { total: 200 },
         popularity: 60,
         external_urls: { spotify: "https://open.spotify.com/artist/spot1" }
@@ -66,7 +66,7 @@ class SpotifyServiceTest < ActiveSupport::TestCase
       artist_body = {
         id: "existing_id",
         name: "Existing Artist",
-        genres: ["breton"],
+        genres: [ "breton" ],
         images: [],
         followers: { total: 50 },
         popularity: 30,
