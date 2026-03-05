@@ -204,7 +204,7 @@ onMounted(async () => {
 
 async function handleSync() {
   try {
-    await artistsStore.syncTopArtistsFromSpotify(timeRange.value, 20)
+    await artistsStore.syncTopArtistsFromSpotify(timeRange.value, 50)
   } catch (err) {
     console.error('Failed to sync artists:', err)
   }
