@@ -1,5 +1,5 @@
 <template>
-  <div class="group relative aspect-square overflow-hidden rounded-xl cursor-pointer bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20">
+  <div class="artist-card group relative aspect-[4/5] sm:aspect-square overflow-hidden rounded-xl cursor-pointer bg-gradient-to-br from-primary/20 via-purple-600/20 to-pink-600/20">
     <!-- Artist Image -->
     <img
       v-if="artistImage"
@@ -14,12 +14,12 @@
     </div>
 
     <!-- Default overlay: name at bottom -->
-    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-3 transition-opacity duration-300 group-hover:opacity-0">
+    <div class="default-overlay absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-3 transition-opacity duration-300 group-hover:opacity-0">
       <p class="text-white font-semibold text-sm truncate">{{ artist.name }}</p>
     </div>
 
     <!-- Hover overlay: fixed-height panel sliding up from bottom -->
-    <div class="absolute inset-x-0 bottom-0 h-36 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
+    <div class="hover-overlay absolute inset-x-0 bottom-0 h-36 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out">
       <div class="h-full bg-black/80 backdrop-blur-sm px-4 py-4 flex flex-col gap-3">
         <!-- Name + shows -->
         <div class="flex items-start justify-between gap-2">
@@ -91,8 +91,20 @@ const artistDescription = computed(() => {
 <style scoped>
 .line-clamp-2 {
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .default-overlay {
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+
+  .hover-overlay {
+    transform: translateY(0) !important;
+  }
 }
 </style>

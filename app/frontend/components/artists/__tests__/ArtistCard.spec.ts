@@ -85,4 +85,27 @@ describe('ArtistCard', () => {
     expect(link.exists()).toBe(true)
     expect(link.text()).toContain('See profile')
   })
+
+  it('uses mobile-first aspect ratio with square from sm breakpoint', () => {
+    const wrapper = mountComponent()
+    const root = wrapper.find('.artist-card')
+
+    expect(root.exists()).toBe(true)
+    expect(root.classes()).toContain('aspect-[4/5]')
+    expect(root.classes()).toContain('sm:aspect-square')
+  })
+
+  it('keeps desktop hover behavior classes on overlays', () => {
+    const wrapper = mountComponent()
+
+    const defaultOverlay = wrapper.find('.default-overlay')
+    const hoverOverlay = wrapper.find('.hover-overlay')
+
+    expect(defaultOverlay.exists()).toBe(true)
+    expect(defaultOverlay.classes()).toContain('group-hover:opacity-0')
+
+    expect(hoverOverlay.exists()).toBe(true)
+    expect(hoverOverlay.classes()).toContain('translate-y-full')
+    expect(hoverOverlay.classes()).toContain('group-hover:translate-y-0')
+  })
 })
