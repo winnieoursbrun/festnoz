@@ -8,7 +8,7 @@ module Api
       # GET /api/v1/suggested_artists
       def index
         @suggested_artists = current_user.suggested_artists
-                                         .includes(artist: [:user_artists, :concerts])
+                                         .includes(artist: [ :user_artists, :concerts ])
                                          .ordered
                                          .limit(50)
 
@@ -28,7 +28,7 @@ module Api
         )
 
         @suggested_artists = current_user.suggested_artists
-                                  .includes(artist: [:user_artists, :concerts])
+                                  .includes(artist: [ :user_artists, :concerts ])
                                   .ordered
                                   .limit(50)
         @message = "Successfully synced #{all_suggestions.count} suggested artists (#{@suggested_artists.count} new)"
