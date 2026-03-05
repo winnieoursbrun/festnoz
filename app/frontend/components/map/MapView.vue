@@ -275,8 +275,8 @@ function updateMarkers() {
     map.addLayer(tourPolylineLayer)
   }
 
-  // Fit extent to show all markers
-  if (props.concerts.length > 0 && view) {
+  // Only auto-fit extent when viewing a specific artist's tour
+  if (props.selectedArtistId && props.concerts.length > 0 && view) {
     try {
       const points = [
         ...props.concerts.map(c => fromLonLat([c.longitude, c.latitude])),

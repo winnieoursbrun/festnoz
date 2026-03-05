@@ -47,20 +47,6 @@
                   class="h-10 pl-10 bg-background/50 border-border/50"
                 />
               </div>
-              <Select v-model="selectedRadius" @update:modelValue="handleRadiusChange">
-                <SelectTrigger class="h-10 w-[160px] bg-background/50 border-border/50">
-                  <Ruler class="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Radius" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="25">25 km</SelectItem>
-                  <SelectItem value="50">50 km</SelectItem>
-                  <SelectItem value="100">100 km</SelectItem>
-                  <SelectItem value="200">200 km</SelectItem>
-                  <SelectItem value="500">500 km</SelectItem>
-                  <SelectItem value="10000">Unlimited</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <Select v-model="selectedArtistId">
@@ -252,7 +238,6 @@ import {
   Map as MapIcon,
   Crosshair,
   Search,
-  Ruler,
   Music,
   Navigation,
   Loader2,
@@ -269,9 +254,8 @@ const concertsStore = useConcertsStore()
 const artistsStore = useArtistsStore()
 
 const mapCenter = ref<[number, number] | null>(null)
-const mapZoom = ref(10)
+const mapZoom = ref(8)
 const searchQuery = ref('')
-const selectedRadius = ref<string>('100')
 const loadingLocation = ref(false)
 const locationError = ref<string | null>(null)
 const userLocation = ref<[number, number] | null>(null)
@@ -279,14 +263,12 @@ const selectedConcert = ref<any>(null)
 const selectedArtistId = ref<string>('all')
 const selectedTimePeriod = ref<string>('this_month')
 
-const searchRadius = computed(() => Number.parseInt(selectedRadius.value))
-
 // Get unique followed artists that have concerts
 const uniqueArtists = computed(() => {
   const followedArtistIds = new Set(artistsStore.followedArtists.map(artist => artist.id))
   const artistsMap = new Map()
 
-  concertsStore.nearbyConcerts.forEach(concert => {
+  concertsStore.concerts.forEach(concert => {
     if (concert.artist && followedArtistIds.has(concert.artist.id) && !artistsMap.has(concert.artist.id)) {
       artistsMap.set(concert.artist.id, {
         id: concert.artist.id,
@@ -300,7 +282,7 @@ const uniqueArtists = computed(() => {
 
 // Filter concerts by followed artists, selected artist, and date range
 const filteredConcerts = computed(() => {
-  let concerts = concertsStore.nearbyConcerts
+  let concerts = concertsStore.concerts
 
   // Filter to only show concerts from followed artists
   const followedArtistIds = new Set(artistsStore.followedArtists.map(artist => artist.id))
@@ -354,7 +336,7 @@ async function getUserLocation() {
   // If we already have a confirmed GPS fix, just re-center — no new prompt needed
   if (userLocation.value) {
     mapCenter.value = userLocation.value
-    mapZoom.value = 10
+    mapZoom.value = 8
     return
   }
 
@@ -376,8 +358,8 @@ async function getUserLocation() {
     const location = await getCurrentLocation()
     userLocation.value = [location.lat, location.lng]
     mapCenter.value = [location.lat, location.lng]
-    mapZoom.value = 10
-    await updateConcerts(location.lat, location.lng)
+    mapZoom.value = 8
+    await loadAllConcerts()
   } catch (error: any) {
     console.error('Failed to get location:', error)
     if (error?.code === 1 /* PERMISSION_DENIED */) {
@@ -396,7 +378,7 @@ function setDefaultLocation() {
   // Default to Brittany, France
   mapCenter.value = [48.1173, -1.6778]
   mapZoom.value = 8
-  updateConcerts(48.1173, -1.6778)
+  loadAllConcerts()
 }
 
 async function searchLocation() {
@@ -407,24 +389,16 @@ async function searchLocation() {
     if (results.length > 0) {
       const location = results[0]
       mapCenter.value = [Number.parseFloat(location.lat), Number.parseFloat(location.lon)]
-      mapZoom.value = 12
-      await updateConcerts(Number.parseFloat(location.lat), Number.parseFloat(location.lon))
+      mapZoom.value = 8
     }
   } catch (error) {
     console.error('Search error:', error)
   }
 }
 
-function handleRadiusChange() {
-  if (mapCenter.value) {
-    updateConcerts(mapCenter.value[0], mapCenter.value[1])
-  }
-}
-
-async function updateConcerts(lat: number, lng: number) {
+async function loadAllConcerts() {
   try {
-    const radius = searchRadius.value
-    await concertsStore.fetchNearbyConcerts(lat, lng, radius)
+    await concertsStore.fetchConcerts()
   } catch (error) {
     console.error('Failed to fetch concerts:', error)
   }
@@ -441,8 +415,11 @@ function centerOnConcert(concert: any) {
 }
 
 onMounted(async () => {
-  // Fetch followed artists first
-  await artistsStore.fetchFollowedArtists()
+  // Fetch followed artists and all concerts
+  await Promise.all([
+    artistsStore.fetchFollowedArtists(),
+    concertsStore.fetchConcerts()
+  ])
 
   // Auto-request location only when the browser hasn't been asked yet (permission = 'prompt')
   // Avoids re-triggering a dialog on every navigation if the user previously denied
@@ -464,5 +441,12 @@ onMounted(async () => {
   } else {
     getUserLocation()
   }
+
+  // Show Brittany by default if no location after a short delay
+  setTimeout(() => {
+    if (!mapCenter.value) {
+      setDefaultLocation()
+    }
+  }, 3000)
 })
 </script>
