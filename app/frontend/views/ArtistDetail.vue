@@ -173,6 +173,9 @@
                 <div
                   v-for="(concert, index) in concerts"
                   :key="concert.id"
+                  :data-concert-id="Number(concert.id)"
+                  :ref="(el) => setConcertCardRef(Number(concert.id), el)"
+                  :class="selectedConcertId === Number(concert.id) ? 'rounded-lg ring-2 ring-primary/60 bg-primary/5 p-1 transition-all' : ''"
                   v-motion
                   :initial="{ opacity: 0, x: -20 }"
                   :enter="{ opacity: 1, x: 0, transition: { delay: 250 + index * 50 } }"
@@ -314,7 +317,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, type ComponentPublicInstance } from 'vue'
 import { useRoute } from 'vue-router'
 import { useArtistsStore } from '../stores/artists'
 import api from '../services/api'
@@ -357,6 +360,7 @@ const concerts = ref<any[]>([])
 const loading = ref(true)
 const loadingConcerts = ref(true)
 const expanded = ref(false)
+const concertCardRefs = ref<Record<number, HTMLElement>>({})
 
 const MAX_BIO_LENGTH = 400
 
@@ -378,6 +382,61 @@ const displayedBio = computed(() => {
 })
 
 const showExpandButton = computed(() => artistBio.value.length > MAX_BIO_LENGTH)
+
+const selectedConcertId = computed(() => {
+  const value = route.query.concertId
+  const idValue = Array.isArray(value) ? value[0] : value
+  if (!idValue) return null
+
+  const parsed = Number.parseInt(String(idValue), 10)
+  return Number.isNaN(parsed) ? null : parsed
+})
+
+function setConcertCardRef(concertId: number, element: Element | ComponentPublicInstance | null) {
+  let htmlElement: HTMLElement | null = null
+
+  if (element instanceof HTMLElement) {
+    htmlElement = element
+  } else if (element && typeof element === 'object') {
+    const maybeElement = (element as { $el?: unknown }).$el
+    if (maybeElement instanceof HTMLElement) {
+      htmlElement = maybeElement
+    }
+  }
+
+  if (htmlElement) {
+    concertCardRefs.value[concertId] = htmlElement
+    return
+  }
+
+  delete concertCardRefs.value[concertId]
+}
+
+function scrollToSelectedConcert(attempt = 0) {
+  if (!selectedConcertId.value) return
+  const target =
+    concertCardRefs.value[selectedConcertId.value] ||
+    (document.querySelector(`[data-concert-id="${selectedConcertId.value}"]`) as HTMLElement | null)
+
+  if (!target) {
+    if (attempt < 12) {
+      setTimeout(() => scrollToSelectedConcert(attempt + 1), 120)
+    }
+    return
+  }
+
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+watch(
+  [() => loadingConcerts.value, selectedConcertId, () => concerts.value.length],
+  ([isLoading, concertId]) => {
+    if (!isLoading && concertId) {
+      scrollToSelectedConcert()
+    }
+  },
+  { immediate: true, flush: 'post' }
+)
 
 const hasLinks = computed(() => {
   return artist.value?.website || artist.value?.facebook_url || artist.value?.twitter_handle || artist.value?.ticketmaster_url

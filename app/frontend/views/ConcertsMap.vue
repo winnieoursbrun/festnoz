@@ -211,7 +211,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useConcertsStore } from '../stores/concerts'
 import { useArtistsStore } from '../stores/artists'
 import { getCurrentLocation, searchLocation as geocodeSearch } from '../services/geocoding'
@@ -252,6 +253,8 @@ import { formatDateLong, formatTime as formatTimeUtil } from '@/lib/utils'
 
 const concertsStore = useConcertsStore()
 const artistsStore = useArtistsStore()
+const route = useRoute()
+const router = useRouter()
 
 const mapCenter = ref<[number, number] | null>(null)
 const mapZoom = ref(8)
@@ -262,6 +265,31 @@ const userLocation = ref<[number, number] | null>(null)
 const selectedConcert = ref<any>(null)
 const selectedArtistId = ref<string>('all')
 const selectedTimePeriod = ref<string>('this_month')
+const validTimePeriods = ['this_week', 'this_month', 'next_3_months', 'next_6_months', 'all']
+
+function getQueryValue(value: unknown): string {
+  return Array.isArray(value) ? String(value[0] ?? '') : String(value ?? '')
+}
+
+function hydrateFiltersFromUrl() {
+  const search = getQueryValue(route.query.search).trim()
+  const artist = getQueryValue(route.query.artist).trim()
+  const period = getQueryValue(route.query.period).trim()
+
+  searchQuery.value = search
+  selectedArtistId.value = artist && /^\d+$/.test(artist) ? artist : 'all'
+  selectedTimePeriod.value = validTimePeriods.includes(period) ? period : 'this_month'
+}
+
+function syncFiltersToUrl() {
+  const query: Record<string, string> = {}
+
+  if (searchQuery.value.trim()) query.search = searchQuery.value.trim()
+  if (selectedArtistId.value !== 'all') query.artist = selectedArtistId.value
+  if (selectedTimePeriod.value !== 'this_month') query.period = selectedTimePeriod.value
+
+  router.replace({ query })
+}
 
 // Get unique followed artists that have concerts
 const uniqueArtists = computed(() => {
@@ -396,6 +424,10 @@ async function searchLocation() {
   }
 }
 
+watch([searchQuery, selectedArtistId, selectedTimePeriod], () => {
+  syncFiltersToUrl()
+})
+
 async function loadAllConcerts() {
   try {
     await concertsStore.fetchConcerts()
@@ -405,6 +437,18 @@ async function loadAllConcerts() {
 }
 
 function showConcertDetails(concert: any) {
+  if (concert?.artist?.id) {
+    router.push({
+      name: 'ArtistDetail',
+      params: { id: concert.artist.id },
+      query: {
+        concertDate: concert.starts_at,
+        concertId: String(concert.id)
+      }
+    })
+    return
+  }
+
   selectedConcert.value = concert
 }
 
@@ -415,6 +459,8 @@ function centerOnConcert(concert: any) {
 }
 
 onMounted(async () => {
+  hydrateFiltersFromUrl()
+
   // Fetch followed artists and all concerts
   await Promise.all([
     artistsStore.fetchFollowedArtists(),

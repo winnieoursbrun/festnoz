@@ -206,7 +206,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useArtistsStore } from '../stores/artists'
 import { useAuthStore } from '../stores/auth'
 import { Button } from '@/components/ui/button'
@@ -237,6 +238,8 @@ import {
 
 const artistsStore = useArtistsStore()
 const authStore = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 
 const searchQuery = ref('')
 const selectedGenre = ref('all')
@@ -262,6 +265,31 @@ function applySortOrder() {
 }
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+function getQueryValue(value: unknown): string {
+  return Array.isArray(value) ? String(value[0] ?? '') : String(value ?? '')
+}
+
+function syncFiltersToUrl() {
+  const query: Record<string, string> = {}
+
+  if (searchQuery.value.trim()) query.search = searchQuery.value.trim()
+  if (selectedGenre.value && selectedGenre.value !== 'all') query.genre = selectedGenre.value
+
+  router.replace({ query })
+}
+
+function hydrateFiltersFromUrl() {
+  const search = getQueryValue(route.query.search).trim()
+  const genre = getQueryValue(route.query.genre).trim()
+
+  searchQuery.value = search
+  selectedGenre.value = genre || 'all'
+}
+
+watch([searchQuery, selectedGenre], () => {
+  syncFiltersToUrl()
+})
 
 function debouncedSearch() {
   if (searchTimeout) clearTimeout(searchTimeout)
@@ -316,6 +344,8 @@ function clearFilters() {
 }
 
 async function fetchArtists() {
+  syncFiltersToUrl()
+
   const filters: Record<string, string> = {}
   if (searchQuery.value) filters.search = searchQuery.value
   if (selectedGenre.value && selectedGenre.value !== 'all') filters.genre = selectedGenre.value
@@ -330,9 +360,11 @@ async function handleArtistImported() {
 }
 
 onMounted(async () => {
+  hydrateFiltersFromUrl()
+
   // Fetch artists + followed status in parallel, then sort once both are ready
   await Promise.all([
-    artistsStore.fetchArtists({}),
+    fetchArtists(),
     authStore.user ? artistsStore.fetchFollowedArtists() : Promise.resolve()
   ])
   applySortOrder()

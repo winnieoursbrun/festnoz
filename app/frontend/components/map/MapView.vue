@@ -26,7 +26,7 @@ import Stroke from 'ol/style/Stroke.js'
 import { defaults as defaultInteractions } from 'ol/interaction.js'
 import MouseWheelZoom from 'ol/interaction/MouseWheelZoom.js'
 import 'ol/ol.css'
-import { formatDate } from '@/lib/utils'
+import { formatDateLong } from '@/lib/utils'
 
 const props = defineProps({
   center: {
@@ -297,19 +297,22 @@ function updateMarkers() {
 function showPopup(concert) {
   if (!popupContent.value || !popupOverlay) return
 
+  const ticketUrl = concert.ticketmaster_url || concert.ticket_url
+
   popupContent.value.innerHTML = `
     <div style="min-width:200px;padding:8px;">
       <h3 style="margin:0 0 8px;font-size:16px;font-weight:bold;color:#1f2937;">${escapeHtml(concert.title)}</h3>
       <p style="margin:0 0 4px;font-size:14px;color:#6b7280;">${escapeHtml(concert.artist?.name || 'Unknown Artist')}</p>
       <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;">📍 ${escapeHtml(concert.venue_name)}</p>
-      <p style="margin:0 0 8px;font-size:12px;color:#9ca3af;">📅 ${formatDate(concert.starts_at)}</p>
+      <p style="margin:0 0 8px;font-size:12px;color:#9ca3af;">📅 ${formatDateLong(concert.starts_at)}</p>
       ${concert.distance ? `<p style="margin:0 0 8px;font-size:12px;color:#9ca3af;">🗺️ ${Math.round(concert.distance * 10) / 10} km away</p>` : ''}
       <button
         onclick="window.dispatchEvent(new CustomEvent('concert-clicked', { detail: ${JSON.stringify(concert).replace(/"/g, '&quot;')} }))"
-        style="background:#9333ea;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;width:100%;"
+        style="background:#9333ea;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;width:100%;margin-bottom:${ticketUrl ? '6px' : '0'};"
         onmouseover="this.style.background='#7c3aed'"
         onmouseout="this.style.background='#9333ea'"
       >View Details</button>
+      ${ticketUrl ? `<a href="${escapeHtml(ticketUrl)}" target="_blank" rel="noopener noreferrer" style="display:block;background:#111827;color:white;text-decoration:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;text-align:center;">Buy Tickets</a>` : ''}
     </div>
   `
 
