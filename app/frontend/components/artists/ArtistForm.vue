@@ -30,9 +30,8 @@
               <SelectValue placeholder="Select genre" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Breton Folk">Breton Folk</SelectItem>
+              <SelectItem value="Folk">Folk</SelectItem>
               <SelectItem value="Traditional">Traditional</SelectItem>
-              <SelectItem value="Breton Traditional">Breton Traditional</SelectItem>
               <SelectItem value="World Music">World Music</SelectItem>
               <SelectItem value="Celtic Rock">Celtic Rock</SelectItem>
             </SelectContent>

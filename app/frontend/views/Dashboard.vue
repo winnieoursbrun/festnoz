@@ -157,7 +157,7 @@
             </div>
             <h3 class="text-xl font-bold mb-2">No artists yet</h3>
             <p class="text-muted-foreground text-center max-w-sm mb-6">
-              Start following your favorite Breton artists to see their upcoming concerts here
+              Start following your favorite artists to see their upcoming concerts here
             </p>
             <Button as-child class="font-medium">
               <router-link to="/artists" class="flex items-center gap-2">
@@ -238,7 +238,7 @@
             </div>
             <h3 class="text-xl font-bold mb-2">Get Personalized Recommendations</h3>
             <p class="text-muted-foreground text-center max-w-md mb-6">
-              Sync your Spotify listening history to discover new Breton artists tailored to your taste
+              Sync your Spotify listening history to discover new artists tailored to your taste
             </p>
             <Button @click="handleSyncArtists" :disabled="artistsStore.syncing" class="font-medium">
               <Sparkles v-if="!artistsStore.syncing" class="w-4 h-4 mr-2" />

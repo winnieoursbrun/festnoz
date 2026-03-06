@@ -38,7 +38,7 @@
           :initial="{ opacity: 0, y: 20 }"
           :enter="{ opacity: 1, y: 0, transition: { delay: 100 } }"
         >
-          Discover Breton Music
+          Discover Live Music
         </p>
 
         <p
@@ -70,9 +70,8 @@
           :initial="{ opacity: 0, y: 20 }"
           :enter="{ opacity: 1, y: 0, transition: { delay: 300 } }"
         >
-          Your gateway to the vibrant world of Breton music. Track your favorite artists,
-          discover upcoming concerts on an interactive map, and immerse yourself in the
-          rich traditions of Celtic culture.
+          Your gateway to the vibrant world of live music. Track your favorite artists,
+          discover upcoming concerts on an interactive map, and never miss a show.
         </p>
 
         <!-- CTA Buttons -->
@@ -168,7 +167,7 @@
               </div>
               <CardTitle class="text-xl">Follow Artists</CardTitle>
               <CardDescription class="text-sm leading-relaxed">
-                Build your personal collection of Breton musicians and stay updated with their latest news
+                Build your personal collection of artists and stay updated with their latest news
               </CardDescription>
             </CardHeader>
           </Card>
@@ -222,7 +221,7 @@
             <div class="p-2 rounded-lg bg-primary/10">
               <Music class="w-4 h-4 text-primary" />
             </div>
-            <span class="font-medium">Made with love for Breton music</span>
+            <span class="font-medium">Made with love for music</span>
           </div>
           <div class="flex items-center gap-6">
             <p class="text-muted-foreground">&copy; {{ currentYear }} FestNoz</p>

@@ -18,7 +18,7 @@
           <h1 class="text-3xl lg:text-4xl font-bold tracking-tight">Discover Artists</h1>
         </div>
         <p class="text-muted-foreground">
-          Explore Breton musicians and build your collection
+          Explore artists and build your collection
         </p>
       </div>
 
@@ -77,9 +77,8 @@
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Genres</SelectItem>
-                <SelectItem value="Breton Folk">Breton Folk</SelectItem>
+                <SelectItem value="Folk">Folk</SelectItem>
                 <SelectItem value="Traditional">Traditional</SelectItem>
-                <SelectItem value="Breton Traditional">Breton Traditional</SelectItem>
                 <SelectItem value="World Music">World Music</SelectItem>
                 <SelectItem value="Celtic Rock">Celtic Rock</SelectItem>
               </SelectContent>
