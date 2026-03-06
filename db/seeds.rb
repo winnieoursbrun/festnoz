@@ -38,35 +38,35 @@ puts "Creating artists..."
 artists_data = [
   {
     name: 'Tri Yann',
-    description: 'Legendary Breton folk band formed in 1970',
-    genre: 'Breton Folk',
+    description: 'Legendary folk band formed in 1970',
+    genre: 'Folk',
     country: 'France',
     image_url: '/images/placeholders/artist-1.svg'
   },
   {
     name: 'Nolwenn Korbell',
-    description: 'Singer of traditional Breton songs',
+    description: 'Singer of traditional folk songs',
     genre: 'Traditional',
     country: 'France',
     image_url: '/images/placeholders/artist-2.svg'
   },
   {
     name: 'Bagad Kemper',
-    description: 'Traditional Breton bagpipe ensemble',
-    genre: 'Breton Traditional',
+    description: 'Traditional bagpipe ensemble',
+    genre: 'Traditional',
     country: 'France',
     image_url: '/images/placeholders/artist-3.svg'
   },
   {
     name: 'Denez Prigent',
-    description: 'Contemporary Breton singer blending tradition and modernity',
+    description: 'Contemporary singer blending tradition and modernity',
     genre: 'World Music',
     country: 'France',
     image_url: '/images/placeholders/artist-4.svg'
   },
   {
     name: 'Red Cardell',
-    description: 'Breton rock band with Celtic influences',
+    description: 'Rock band with Celtic influences',
     genre: 'Celtic Rock',
     country: 'France',
     image_url: '/images/placeholders/artist-5.svg'
@@ -81,7 +81,7 @@ concerts_data = [
   {
     artist: artists[0],
     title: 'Fest-Noz de Printemps',
-    description: 'Traditional Breton dance night with Tri Yann',
+    description: 'Traditional folk dance night with Tri Yann',
     starts_at: 2.weeks.from_now.change(hour: 20, min: 0),
     ends_at: 2.weeks.from_now.change(hour: 23, min: 30),
     venue_name: 'Salle des Fêtes de Quimper',
@@ -110,7 +110,7 @@ concerts_data = [
   {
     artist: artists[1],
     title: 'Concert Kan ha Diskan',
-    description: 'Traditional Breton singing evening',
+    description: 'Traditional folk singing evening',
     starts_at: 1.month.from_now.change(hour: 19, min: 30),
     venue_name: 'Ti ar Vro',
     venue_address: '5 Place Saint-Corentin',
@@ -149,8 +149,8 @@ concerts_data = [
   },
   {
     artist: artists[3],
-    title: 'Concert Électro-Breton',
-    description: 'Modern electronic music meets Breton tradition',
+    title: 'Concert Électro-Folk',
+    description: 'Modern electronic music meets folk tradition',
     starts_at: 6.weeks.from_now.change(hour: 21, min: 30),
     venue_name: 'Le Vauban',
     venue_address: '17 Av. Clemenceau',
