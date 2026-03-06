@@ -1,10 +1,10 @@
 # 🎵 FestNoz - Track Artists, Catch Them Live
 
-A modern web application for tracking your favorite Breton artists and discovering their concerts on an interactive map.
+A modern web application for tracking your favorite artists and discovering their concerts on an interactive map.
 
 ## Features
 
-- 🎭 **Follow Artists**: Track your favorite Breton musicians
+- 🎭 **Follow Artists**: Track your favorite musicians
 - 🗺️ **Interactive Map**: Find concerts happening near you using Leaflet
 - 📍 **Location-Based Search**: Discover concerts by proximity
 - 🎫 **Concert Information**: Get details, dates, venues, and ticket links
@@ -118,4 +118,4 @@ festnoz/
 
 ## License
 
-MIT License - Made with ❤️ in Brittany
+MIT License - Made with ❤️ for music

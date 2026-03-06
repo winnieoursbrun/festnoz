@@ -122,7 +122,7 @@
               </Button>
               <Button variant="outline" @click="setDefaultLocation" class="font-medium bg-background/50">
                 <Navigation class="w-4 h-4 mr-2" />
-                Browse Brittany
+                Browse Map
               </Button>
             </div>
           </CardContent>
@@ -375,8 +375,8 @@ async function getUserLocation() {
 }
 
 function setDefaultLocation() {
-  // Default to Brittany, France
-  mapCenter.value = [48.1173, -1.6778]
+  // Default to Paris, France
+  mapCenter.value = [48.8566, 2.3522]
   mapZoom.value = 8
   loadAllConcerts()
 }
@@ -442,7 +442,7 @@ onMounted(async () => {
     getUserLocation()
   }
 
-  // Show Brittany by default if no location after a short delay
+  // Show default location if no location after a short delay
   setTimeout(() => {
     if (!mapCenter.value) {
       setDefaultLocation()

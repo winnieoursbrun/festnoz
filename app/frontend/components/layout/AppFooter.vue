@@ -13,11 +13,11 @@
           </div>
         </div>
 
-        <!-- Made in Brittany -->
+        <!-- Made with love -->
         <div class="flex items-center gap-2 text-sm text-muted-foreground">
           <span>Made with</span>
           <Heart class="w-4 h-4 text-destructive fill-destructive animate-pulse" />
-          <span>in Brittany</span>
+          <span>for music</span>
         </div>
 
         <!-- Year -->

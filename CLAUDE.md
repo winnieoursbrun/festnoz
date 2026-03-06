@@ -4,7 +4,7 @@ This file provides guidance for Claude Code when working with this repository.
 
 ## Project Overview
 
-FestNoz is a concert tracking application for Breton music, built with Rails 8.1.1 API backend and Vue 3 + Vite frontend. Users can follow artists, discover concerts on an interactive map, and get location-based recommendations.
+FestNoz is a concert tracking application built with Rails 8.1.1 API backend and Vue 3 + Vite frontend. Users can follow artists, discover concerts on an interactive map, and get location-based recommendations.
 
 ## Development Commands
 
