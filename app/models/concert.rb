@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Concert < ApplicationRecord
+  include PgSearch::Model
+
   # Geocoding configuration
   geocoded_by :full_address
   after_validation :geocode_if_needed, if: :should_geocode?
@@ -32,6 +34,15 @@ class Concert < ApplicationRecord
   scope :past, -> { where("starts_at < ?", Time.current).order(starts_at: :desc) }
   scope :in_city, ->(city) { where("city ILIKE ?", "%#{sanitize_sql_like(city)}%") }
   scope :by_date_range, ->(start_date, end_date) { where(starts_at: start_date..end_date) }
+
+  # Full-text search using pg_search gem across multiple fields
+  pg_search_scope :search_by_fields,
+                  against: [ :title, :venue_name, :city ],
+                  using: { tsearch: { prefix: true }, trigram: {} },
+                  ignoring: :accents
+
+  # Alias for backward compatibility
+  scope :search, ->(query) { search_by_fields(query) }
 
   # Geocoder method: builds full address for geocoding
   def full_address

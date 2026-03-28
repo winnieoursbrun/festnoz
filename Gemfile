@@ -29,6 +29,9 @@ gem "rack-cors"
 # Geocoding services for location lookups
 gem "geocoder"
 
+# Full-text search for PostgreSQL
+gem "pg_search"
+
 # Use Vite for modern frontend asset bundling
 gem "vite_rails"
 

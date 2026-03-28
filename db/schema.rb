@@ -10,9 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_18_195500) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_28_134906) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
+  enable_extension "unaccent"
 
   create_table "artists", force: :cascade do |t|
     t.datetime "audiodb_enriched_at"
@@ -42,6 +44,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_18_195500) do
     t.string "twitter_handle"
     t.datetime "updated_at", null: false
     t.string "website"
+    t.index "immutable_unaccent((name)::text)", name: "index_artists_on_name_unaccent"
+    t.index "to_tsvector('english'::regconfig, lower(immutable_unaccent((name)::text)))", name: "index_artists_on_tsvector", using: :gin
     t.index ["audiodb_id"], name: "index_artists_on_audiodb_id"
     t.index ["audiodb_status"], name: "index_artists_on_audiodb_status"
     t.index ["genre"], name: "index_artists_on_genre"
@@ -67,6 +71,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_18_195500) do
     t.datetime "updated_at", null: false
     t.string "venue_address"
     t.string "venue_name", null: false
+    t.index "immutable_unaccent((city)::text)", name: "index_concerts_on_city_unaccent"
+    t.index "immutable_unaccent((title)::text)", name: "index_concerts_on_title_unaccent"
+    t.index "immutable_unaccent((venue_name)::text)", name: "index_concerts_on_venue_name_unaccent"
+    t.index "to_tsvector('english'::regconfig, lower(immutable_unaccent((city)::text)))", name: "index_concerts_on_city_tsvector", using: :gin
+    t.index "to_tsvector('english'::regconfig, lower(immutable_unaccent((title)::text)))", name: "index_concerts_on_title_tsvector", using: :gin
+    t.index "to_tsvector('english'::regconfig, lower(immutable_unaccent((venue_name)::text)))", name: "index_concerts_on_venue_tsvector", using: :gin
     t.index ["artist_id"], name: "index_concerts_on_artist_id"
     t.index ["city"], name: "index_concerts_on_city"
     t.index ["latitude", "longitude"], name: "index_concerts_on_latitude_and_longitude"

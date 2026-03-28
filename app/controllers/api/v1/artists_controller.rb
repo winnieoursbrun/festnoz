@@ -13,7 +13,7 @@ module Api
 
         # Apply filters
         @artists = @artists.by_genre(params[:genre]) if params[:genre].present?
-        @artists = @artists.search(params[:search]) if params[:search].present?
+        @artists = @artists.search_by_name(params[:search]) if params[:search].present?
 
         # Eager load associations to avoid N+1 queries
         @artists = @artists.includes(:user_artists, :concerts).order(:name)

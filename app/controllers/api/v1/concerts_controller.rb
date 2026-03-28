@@ -15,6 +15,9 @@ module Api
         @concerts = @concerts.where(artist_id: params[:artist_id]) if params[:artist_id].present?
         @concerts = @concerts.in_city(params[:city]) if params[:city].present?
 
+        # Full-text search across title, venue, and city
+        @concerts = @concerts.search_by_fields(params[:search]) if params[:search].present?
+
         # Date range filter
         if params[:start_date].present? && params[:end_date].present?
           @concerts = @concerts.by_date_range(
@@ -32,6 +35,17 @@ module Api
         @concerts = Concert.includes(:artist).upcoming.order(:starts_at).limit(50)
 
         render :upcoming, status: :ok
+      end
+
+      # GET /api/v1/concerts/search?q=query
+      def search
+        query = params[:q].to_s.strip
+        return render json: { error: "Query is required" }, status: :bad_request if query.blank?
+
+        # Use pg_search with relevance ranking
+        @concerts = Concert.includes(:artist).search_by_fields(query)
+
+        render :index, status: :ok
       end
 
       # GET /api/v1/concerts/nearby?lat=48.8566&lng=2.3522&radius=50

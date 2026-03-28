@@ -3,6 +3,8 @@
 class Artist < ApplicationRecord
   ENRICHMENT_CACHE_DURATION = 30.days
 
+  include PgSearch::Model
+
   # Associations
   has_many :concerts, dependent: :destroy
   has_many :ticketmaster_events, dependent: :destroy
@@ -21,7 +23,16 @@ class Artist < ApplicationRecord
 
   # Scopes
   scope :by_genre, ->(genre) { where(genre: genre) }
-  scope :search, ->(query) { where("name ILIKE ?", "%#{sanitize_sql_like(query)}%") }
+
+  # Full-text search using pg_search gem
+  pg_search_scope :search_by_name,
+                  against: :name,
+                  using: { tsearch: { prefix: true }, trigram: {} },
+                  ignoring: :accents
+
+  # Alias for backward compatibility
+  scope :search, ->(query) { search_by_name(query) }
+
   scope :needs_enrichment, -> { where(audiodb_status: [ nil, "pending" ]) }
   scope :enriched, -> { where(audiodb_status: "enriched") }
   scope :not_found_in_audiodb, -> { where(audiodb_status: "not_found") }
