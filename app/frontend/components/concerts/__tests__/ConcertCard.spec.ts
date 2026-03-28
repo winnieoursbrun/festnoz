@@ -95,6 +95,12 @@ describe('ConcertCard', () => {
     expect(wrapper.text()).toContain('EUR')
   })
 
+  it('renders provided price currency when present', () => {
+    const wrapper = mountComponent({ price: 25, price_currency: 'USD' })
+    expect(wrapper.text()).toContain('25.00')
+    expect(wrapper.text()).toContain('USD')
+  })
+
   it('does not render price section when price is absent', () => {
     const wrapper = mountComponent({ price: undefined })
     expect(wrapper.find('.icon-banknote').exists()).toBe(false)

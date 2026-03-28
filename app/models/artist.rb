@@ -5,6 +5,7 @@ class Artist < ApplicationRecord
 
   # Associations
   has_many :concerts, dependent: :destroy
+  has_many :ticketmaster_events, dependent: :destroy
   has_many :user_artists, dependent: :destroy
   has_many :suggested_artists, dependent: :destroy
   has_many :followers, through: :user_artists, source: :user

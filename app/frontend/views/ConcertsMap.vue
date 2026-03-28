@@ -185,10 +185,10 @@
             </div>
           </div>
 
-          <div v-if="selectedConcert.price" class="flex items-center gap-2">
+          <div v-if="selectedConcert.price !== null && selectedConcert.price !== undefined" class="flex items-center gap-2">
             <Badge variant="secondary" class="bg-green-500/10 text-green-400 border-green-500/20 px-4 py-2">
               <Ticket class="w-4 h-4 mr-2" />
-              {{ Number(selectedConcert.price).toFixed(2) }} EUR
+              {{ Number(selectedConcert.price).toFixed(2) }} {{ selectedConcert.price_currency || 'EUR' }}
             </Badge>
           </div>
 

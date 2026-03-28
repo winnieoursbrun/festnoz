@@ -7,6 +7,7 @@ class Concert < ApplicationRecord
 
   # Associations
   belongs_to :artist
+  has_one :ticketmaster_event, dependent: :destroy
 
   # Validations
   validates :title, presence: true

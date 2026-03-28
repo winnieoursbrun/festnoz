@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_06_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_18_195500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -63,8 +63,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_06_120000) do
     t.string "price_currency", default: "EUR"
     t.datetime "starts_at", null: false
     t.string "ticket_url"
-    t.string "ticketmaster_id"
-    t.string "ticketmaster_url"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.string "venue_address"
@@ -73,7 +71,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_06_120000) do
     t.index ["city"], name: "index_concerts_on_city"
     t.index ["latitude", "longitude"], name: "index_concerts_on_latitude_and_longitude"
     t.index ["starts_at"], name: "index_concerts_on_starts_at"
-    t.index ["ticketmaster_id"], name: "index_concerts_on_ticketmaster_id", unique: true
   end
 
   create_table "jwt_denylist", force: :cascade do |t|
@@ -112,6 +109,34 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_06_120000) do
     t.index ["synced_at"], name: "index_suggested_artists_on_synced_at"
     t.index ["user_id", "artist_id"], name: "index_suggested_artists_on_user_id_and_artist_id", unique: true
     t.index ["user_id"], name: "index_suggested_artists_on_user_id"
+  end
+
+  create_table "ticketmaster_events", force: :cascade do |t|
+    t.bigint "artist_id", null: false
+    t.bigint "concert_id", null: false
+    t.datetime "created_at", null: false
+    t.string "event_url"
+    t.text "info"
+    t.datetime "last_synced_at", null: false
+    t.string "locale"
+    t.string "name"
+    t.jsonb "payload", default: {}, null: false
+    t.text "please_note"
+    t.string "price_currency"
+    t.decimal "price_max", precision: 10, scale: 2
+    t.decimal "price_min", precision: 10, scale: 2
+    t.string "price_type"
+    t.datetime "sales_end_at"
+    t.datetime "sales_start_at"
+    t.datetime "starts_at"
+    t.string "status_code"
+    t.string "ticketmaster_event_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["artist_id", "starts_at"], name: "index_ticketmaster_events_on_artist_id_and_starts_at"
+    t.index ["artist_id"], name: "index_ticketmaster_events_on_artist_id"
+    t.index ["concert_id"], name: "index_ticketmaster_events_on_concert_id", unique: true
+    t.index ["starts_at"], name: "index_ticketmaster_events_on_starts_at"
+    t.index ["ticketmaster_event_id"], name: "index_ticketmaster_events_on_ticketmaster_event_id", unique: true
   end
 
   create_table "user_artists", force: :cascade do |t|
@@ -159,6 +184,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_06_120000) do
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "suggested_artists", "artists"
   add_foreign_key "suggested_artists", "users"
+  add_foreign_key "ticketmaster_events", "artists"
+  add_foreign_key "ticketmaster_events", "concerts"
   add_foreign_key "user_artists", "artists"
   add_foreign_key "user_artists", "users"
 end

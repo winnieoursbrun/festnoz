@@ -56,11 +56,11 @@
             </div>
             <span class="text-muted-foreground">{{ startTime }} - {{ endTime }}</span>
           </div>
-          <div v-if="concert.price" class="flex items-center gap-2 text-sm">
+          <div v-if="concert.price !== null && concert.price !== undefined" class="flex items-center gap-2 text-sm">
             <div class="p-1.5 rounded-md bg-green-500/10">
               <Banknote class="w-3.5 h-3.5 text-green-500" />
             </div>
-            <span class="text-muted-foreground">{{ formatPrice(concert.price) }} EUR</span>
+            <span class="text-muted-foreground">{{ formatPrice(concert.price) }} {{ concert.price_currency || 'EUR' }}</span>
           </div>
           <div v-if="concert.distance" class="flex items-center gap-2 text-sm">
             <div class="p-1.5 rounded-md bg-pink-500/10">
@@ -110,6 +110,7 @@ interface Concert {
   city: string
   country: string
   price?: number
+  price_currency?: string
   distance?: number
   ticket_url?: string
   ticketmaster_id?: string

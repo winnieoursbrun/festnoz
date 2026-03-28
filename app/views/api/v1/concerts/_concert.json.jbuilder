@@ -12,9 +12,10 @@ json.country concert.country
 json.latitude concert.latitude
 json.longitude concert.longitude
 json.price concert.price
+json.price_currency concert.price_currency
 json.ticket_url concert.ticket_url
-json.ticketmaster_id concert.ticketmaster_id
-json.ticketmaster_url concert.ticketmaster_url
+json.ticketmaster_id concert.ticketmaster_event&.ticketmaster_event_id
+json.ticketmaster_url concert.ticketmaster_event&.event_url
 json.created_at concert.created_at
 
 json.artist do

@@ -112,6 +112,12 @@
                         <Pencil class="w-4 h-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
+                      <!-- Show artist in app -->
+                      <DropdownMenuItem :to="`/artists/${artist.id}`" class="cursor-pointer">
+                        <ArrowRight class="w-4 h-4 mr-2" />
+                        View Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem @click="handleFetchEvents(artist)" class="cursor-pointer">
                         <Calendar class="w-4 h-4 mr-2" />
                         Fetch Events
@@ -149,7 +155,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import {
-  Users, Music, Calendar, Plus, MoreHorizontal, Pencil, Trash2, BadgeCheck
+  Users, Music, Calendar, Plus, MoreHorizontal, Pencil, Trash2, BadgeCheck, ArrowRight
 } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 
