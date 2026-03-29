@@ -30,9 +30,6 @@ class Artist < ApplicationRecord
                   using: { tsearch: { prefix: true }, trigram: {} },
                   ignoring: :accents
 
-  # Alias for backward compatibility
-  scope :search, ->(query) { search_by_name(query) }
-
   scope :needs_enrichment, -> { where(audiodb_status: [ nil, "pending" ]) }
   scope :enriched, -> { where(audiodb_status: "enriched") }
   scope :not_found_in_audiodb, -> { where(audiodb_status: "not_found") }

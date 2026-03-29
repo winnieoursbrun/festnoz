@@ -45,7 +45,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_134906) do
     t.datetime "updated_at", null: false
     t.string "website"
     t.index "immutable_unaccent((name)::text)", name: "index_artists_on_name_unaccent"
-    t.index "to_tsvector('english'::regconfig, lower(immutable_unaccent((name)::text)))", name: "index_artists_on_tsvector", using: :gin
+    t.index "to_tsvector('simple'::regconfig, lower(immutable_unaccent((name)::text)))", name: "index_artists_on_tsvector", using: :gin
     t.index ["audiodb_id"], name: "index_artists_on_audiodb_id"
     t.index ["audiodb_status"], name: "index_artists_on_audiodb_status"
     t.index ["genre"], name: "index_artists_on_genre"
@@ -74,9 +74,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_134906) do
     t.index "immutable_unaccent((city)::text)", name: "index_concerts_on_city_unaccent"
     t.index "immutable_unaccent((title)::text)", name: "index_concerts_on_title_unaccent"
     t.index "immutable_unaccent((venue_name)::text)", name: "index_concerts_on_venue_name_unaccent"
-    t.index "to_tsvector('english'::regconfig, lower(immutable_unaccent((city)::text)))", name: "index_concerts_on_city_tsvector", using: :gin
-    t.index "to_tsvector('english'::regconfig, lower(immutable_unaccent((title)::text)))", name: "index_concerts_on_title_tsvector", using: :gin
-    t.index "to_tsvector('english'::regconfig, lower(immutable_unaccent((venue_name)::text)))", name: "index_concerts_on_venue_tsvector", using: :gin
+    t.index "to_tsvector('simple'::regconfig, lower(immutable_unaccent((city)::text)))", name: "index_concerts_on_city_tsvector", using: :gin
+    t.index "to_tsvector('simple'::regconfig, lower(immutable_unaccent((title)::text)))", name: "index_concerts_on_title_tsvector", using: :gin
+    t.index "to_tsvector('simple'::regconfig, lower(immutable_unaccent((venue_name)::text)))", name: "index_concerts_on_venue_tsvector", using: :gin
     t.index ["artist_id"], name: "index_concerts_on_artist_id"
     t.index ["city"], name: "index_concerts_on_city"
     t.index ["latitude", "longitude"], name: "index_concerts_on_latitude_and_longitude"

@@ -3,7 +3,7 @@
 module Api
   module V1
     class ConcertsController < BaseController
-      skip_before_action :authenticate_user!, only: [ :index, :show, :nearby, :upcoming ]
+      skip_before_action :authenticate_user!, only: [ :index, :show, :nearby, :upcoming, :search ]
       before_action :require_admin, only: [ :create, :update, :destroy ]
       before_action :set_concert, only: [ :show, :update, :destroy ]
 
@@ -14,9 +14,6 @@ module Api
         # Apply filters
         @concerts = @concerts.where(artist_id: params[:artist_id]) if params[:artist_id].present?
         @concerts = @concerts.in_city(params[:city]) if params[:city].present?
-
-        # Full-text search across title, venue, and city
-        @concerts = @concerts.search_by_fields(params[:search]) if params[:search].present?
 
         # Date range filter
         if params[:start_date].present? && params[:end_date].present?
@@ -39,7 +36,7 @@ module Api
 
       # GET /api/v1/concerts/search?q=query
       def search
-        query = params[:q].to_s.strip
+        query = params[:q].to_s.strip.truncate(100, omission: "")
         return render json: { error: "Query is required" }, status: :bad_request if query.blank?
 
         # Use pg_search with relevance ranking

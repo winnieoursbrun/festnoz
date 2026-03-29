@@ -79,6 +79,7 @@ Rails.application.routes.draw do
       # Concerts
       resources :concerts, only: [ :index, :show, :create, :update, :destroy ] do
         collection do
+          get :search
           get :nearby
           get :upcoming
         end

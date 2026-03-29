@@ -27,8 +27,8 @@ class ArtistTest < ActiveSupport::TestCase
     it "searches by name case-insensitively" do
       a1 = create(:artist, name: "Plantec")
       a2 = create(:artist, name: "Other Band")
-      assert_includes Artist.search("plante"), a1
-      assert_not_includes Artist.search("plante"), a2
+      assert_includes Artist.search_by_name("plante"), a1
+      assert_not_includes Artist.search_by_name("plante"), a2
     end
 
     it "returns needs_enrichment artists" do

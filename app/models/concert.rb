@@ -41,9 +41,6 @@ class Concert < ApplicationRecord
                   using: { tsearch: { prefix: true }, trigram: {} },
                   ignoring: :accents
 
-  # Alias for backward compatibility
-  scope :search, ->(query) { search_by_fields(query) }
-
   # Geocoder method: builds full address for geocoding
   def full_address
     [ venue_address, city, country ].compact.join(", ")
