@@ -1,0 +1,52 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "6589d4595435cef8cb45e3b423e99f8a9fed671d2670b4bd73a457007f23cd92",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/api/v1/users_controller.rb",
+      "line": 66,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "(params[:user] or params).permit(:email, :username, :admin, :password)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Api::V1::UsersController",
+        "method": "user_create_params"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        915
+      ],
+      "note": "UsersController has a controller-wide `before_action :require_admin`, so only admins can reach create/update. Permitting :admin here is intentional so admins can grant/revoke admin on other users."
+    },
+    {
+      "warning_type": "Mass Assignment",
+      "warning_code": 105,
+      "fingerprint": "1ee6860a85fa2e1b3736b823111432b36ab427ad1c2dbaccfa6a7993242933f6",
+      "check_name": "PermitAttributes",
+      "message": "Potentially dangerous key allowed for mass assignment",
+      "file": "app/controllers/api/v1/users_controller.rb",
+      "line": 72,
+      "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
+      "code": "(params[:user] or params).permit(:email, :username, :admin, :password)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "Api::V1::UsersController",
+        "method": "user_update_params"
+      },
+      "user_input": null,
+      "confidence": "High",
+      "cwe_id": [
+        915
+      ],
+      "note": "UsersController has a controller-wide `before_action :require_admin`, so only admins can reach create/update. Permitting :admin here is intentional so admins can grant/revoke admin on other users."
+    }
+  ],
+  "updated": "2026-08-20 10:56:00 +0000",
+  "brakeman_version": "8.0.6"
+}
