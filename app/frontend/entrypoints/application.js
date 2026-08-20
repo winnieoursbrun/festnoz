@@ -11,6 +11,17 @@ import 'vue-sonner/style.css'
 import * as Sentry from "@sentry/vue";
 import { createSentryPiniaPlugin } from "@sentry/vue";
 
+// ── Stale chunk recovery ─────────────────────────────────────────────────────
+// After a new deploy, old hashed chunk files are removed from the server. A
+// client still on an older page (or served a cached shell by the service
+// worker) can try to lazy-load one of those chunks and fail. Vite emits
+// `vite:preloadError` in that case — reload once to pick up the new build.
+window.addEventListener('vite:preloadError', () => {
+  if (sessionStorage.getItem('vitePreloadErrorReload')) return
+  sessionStorage.setItem('vitePreloadErrorReload', '1')
+  window.location.reload()
+})
+
 // ── Service Worker registration ──────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -139,3 +150,6 @@ app.use(pinia)
 app.use(router)
 
 app.mount('#app')
+
+// App booted successfully — a future preload error is a fresh problem, not a loop.
+sessionStorage.removeItem('vitePreloadErrorReload')
