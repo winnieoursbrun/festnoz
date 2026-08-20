@@ -39,7 +39,7 @@ class User < ApplicationRecord
     user = where(provider: auth.provider, uid: auth.uid).first_or_initialize do |u|
       u.email = auth.info.email || "#{auth.uid}@spotify.temp"
       u.password = Devise.friendly_token[0, 20]
-      u.username = auth.info.display_name || auth.info.nickname || "spotify_user_#{auth.uid}"
+      u.username = auth.info.name || auth.info.nickname || "spotify_user_#{auth.uid}"
     end
 
     # Always update Spotify tokens (even for existing users)
