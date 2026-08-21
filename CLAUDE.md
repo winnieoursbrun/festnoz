@@ -250,6 +250,23 @@ Concert.near([lat, lng], radius_km, units: :km)
 - Frontend runs on port 5173, backend on 3000 during development
 - CORS is configured to allow 127.0.0.1:3000 in development
 
+## CI/CD
+
+GitHub Actions workflows live in `.github/workflows/` (see `docs/DEPLOYMENT.md`):
+
+- `ci.yml` — Brakeman + bundler-audit, RuboCop, `bin/rails test` (PostgreSQL
+  service container), `npm run test:run`. Runs on every PR and on `main`.
+- `deploy.yml` — Kamal deploy, triggered automatically when CI succeeds on
+  `main`, or manually via *Run workflow*.
+- `rollback.yml` — manual `kamal rollback <sha>`.
+
+Deploy and rollback run on a **self-hosted runner** on the LAN: the server
+(`192.168.1.11`) and the registry (`localhost:5555`) are unreachable from
+GitHub-hosted runners. `.github/actions/kamal-setup` restores
+`config/master.key` and `config/database_password.txt` from the
+`RAILS_MASTER_KEY` / `POSTGRES_PASSWORD` secrets before running Kamal, and
+deletes them afterwards.
+
 ## Configuration Management
 
 **IMPORTANT**: Use Rails encrypted credentials instead of environment variables for sensitive data.

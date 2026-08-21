@@ -1,0 +1,73 @@
+name: Deploy
+
+# Deploys run on the server itself (or any machine of its LAN) through a
+# self-hosted runner: the server has a private address (192.168.1.11) and the
+# container registry listens on localhost:5555, so GitHub-hosted runners cannot
+# reach either of them.
+on:
+  # Automatic: as soon as CI is green on main.
+  workflow_run:
+    workflows: [ "CI" ]
+    types: [ completed ]
+    branches: [ main ]
+  # Manual: deploy any branch or tag from the Actions tab.
+  workflow_dispatch:
+    inputs:
+      force_unlock:
+        description: "Release a stale Kamal deploy lock before deploying"
+        type: boolean
+        default: false
+
+concurrency:
+  group: festnoz-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Skip automatic runs when CI failed; manual runs always go through.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+
+    runs-on: self-hosted
+    timeout-minutes: 45
+
+    steps:
+      - name: Resolve the commit to deploy
+        id: target
+        env:
+          WORKFLOW_RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: echo "sha=${WORKFLOW_RUN_SHA:-$GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+
+      - name: Set up Kamal
+        uses: ./.github/actions/kamal-setup
+        with:
+          rails-master-key: ${{ secrets.RAILS_MASTER_KEY }}
+          postgres-password: ${{ secrets.POSTGRES_PASSWORD }}
+          ssh-private-key: ${{ secrets.KAMAL_SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.KAMAL_SSH_KNOWN_HOSTS }}
+
+      - name: Release the deploy lock
+        if: inputs.force_unlock
+        run: bin/kamal lock release
+
+      - name: Deploy with Kamal
+        run: |
+          echo "Deploying ${{ steps.target.outputs.sha }} to production"
+          bin/kamal deploy
+
+      - name: Show the running containers
+        run: bin/kamal app details
+
+      - name: Dump application logs on failure
+        if: failure()
+        run: bin/kamal app logs --lines 200 || true
+
+      - name: Remove secret files from the workspace
+        if: always()
+        run: |
+          rm -f config/master.key config/database_password.txt
+          if [ -n "${SSH_AGENT_PID:-}" ]; then ssh-agent -k >/dev/null 2>&1 || true; fi

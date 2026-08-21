@@ -50,3 +50,75 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+  test_backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: festnoz_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/festnoz_test
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install PostgreSQL client libraries
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install --no-install-recommends -y libpq-dev postgresql-client
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Check that the credentials key is available
+        run: |
+          if [ -z "${RAILS_MASTER_KEY}" ]; then
+            echo "::error::the RAILS_MASTER_KEY secret is missing — Devise reads its JWT secret from the encrypted credentials"
+            exit 1
+          fi
+
+      - name: Prepare the test database
+        run: bin/rails db:test:prepare
+
+      - name: Run backend tests
+        run: bin/rails test
+
+  test_frontend:
+    runs-on: ubuntu-latest
+
+    env:
+      # The frontend suite runs on happy-dom, no browser download needed.
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        run: npm run test:run

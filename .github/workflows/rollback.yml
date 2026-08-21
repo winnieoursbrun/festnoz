@@ -1,0 +1,51 @@
+name: Rollback
+
+# Manual rollback to a previously deployed version. Kamal tags images with the
+# commit SHA, so `version` is the SHA of the release you want to go back to.
+# `bin/kamal app containers` (run below) lists the versions still available on
+# the server.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to roll back to (commit SHA used as image tag)"
+        type: string
+        required: true
+
+concurrency:
+  group: festnoz-production
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: self-hosted
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Kamal
+        uses: ./.github/actions/kamal-setup
+        with:
+          rails-master-key: ${{ secrets.RAILS_MASTER_KEY }}
+          postgres-password: ${{ secrets.POSTGRES_PASSWORD }}
+          ssh-private-key: ${{ secrets.KAMAL_SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.KAMAL_SSH_KNOWN_HOSTS }}
+
+      - name: List the versions available on the server
+        run: bin/kamal app containers
+
+      - name: Roll back
+        env:
+          VERSION: ${{ inputs.version }}
+        run: bin/kamal rollback "$VERSION"
+
+      - name: Show the running containers
+        run: bin/kamal app details
+
+      - name: Remove secret files from the workspace
+        if: always()
+        run: |
+          rm -f config/master.key config/database_password.txt
+          if [ -n "${SSH_AGENT_PID:-}" ]; then ssh-agent -k >/dev/null 2>&1 || true; fi
