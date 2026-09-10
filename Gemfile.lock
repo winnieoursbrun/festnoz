@@ -275,7 +275,7 @@ GEM
     omniauth-rails_csrf_protection (2.0.1)
       actionpack (>= 4.2)
       omniauth (~> 2.0)
-    omniauth-spotify (1.0.3)
+    omniauth-spotify (1.0.4)
       cgi (>= 0.3.6)
       omniauth-oauth2 (>= 1.8, < 2.0)
     openssl (4.0.2)
